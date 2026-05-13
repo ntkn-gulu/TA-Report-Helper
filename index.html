@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TA Report Helper</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .btn-mode { transition: all 0.15s ease; }
+    .tier-badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 9999px; font-weight: 600; }
+    .opt-btn { transition: background 0.12s, color 0.12s, border-color 0.12s; }
+    #toastContainer { pointer-events: none; }
+    .toast { pointer-events: auto; animation: slideIn 0.2s ease; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+<!-- ══════════════════════════════════════════════════════ TOAST CONTAINER -->
+<div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 items-center"></div>
+
+<!-- ══════════════════════════════════════════════════════ DISCLAIMER MODAL -->
+<div id="disclaimerModal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+    <h2 class="text-base font-bold text-slate-800">⚠️ LƯU Ý QUAN TRỌNG TRƯỚC KHI DÙNG TÍNH NĂNG AI</h2>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2 text-sm text-slate-700">
+      <p class="font-semibold text-amber-800">🔒 Quyền riêng tư:</p>
+      <ul class="space-y-1 list-none pl-1">
+        <li>• Nội dung sẽ được gửi đến Google để viết lại</li>
+        <li>• Tên thật của bé được <strong>ẨN TỰ ĐỘNG</strong> (chỉ gửi tên thay thế như "Kelvin")</li>
+        <li class="font-semibold text-red-700 mt-2">• TUYỆT ĐỐI KHÔNG nhập các thông tin sau vào bất kỳ ô nào:</li>
+        <li class="pl-3">– Số điện thoại của PH hoặc bé</li>
+        <li class="pl-3">– Địa chỉ nhà, tên trường, lớp cụ thể</li>
+        <li class="pl-3">– Số CCCD, số tài khoản, hoặc thông tin định danh khác</li>
+        <li class="pl-3">– Tên đầy đủ của PH (chỉ gọi "mẹ" / "ba" là đủ)</li>
+      </ul>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2 text-sm text-slate-700">
+      <p class="font-semibold text-blue-800">✅ Trách nhiệm của TA:</p>
+      <p>Đây <strong>CHỈ</strong> là công cụ <strong>HỖ TRỢ</strong>. AI có thể:</p>
+      <ul class="space-y-1 list-none pl-1">
+        <li>• Hiểu sai ý của bạn và viết lệch sự thật về bé</li>
+        <li>• Thêm/bớt chi tiết khiến PH hiểu nhầm</li>
+        <li>• Dùng từ không đúng văn phong trung tâm của bạn</li>
+      </ul>
+      <p class="font-semibold mt-1">Bạn BẮT BUỘC phải:</p>
+      <ul class="space-y-1 list-none pl-1">
+        <li>✓ Đọc kỹ toàn bộ output trước khi gửi PH</li>
+        <li>✓ So sánh với thông tin gốc về bé</li>
+        <li>✓ Sửa lại nếu thấy chi tiết nào sai/không phù hợp</li>
+        <li>✓ Chịu trách nhiệm cuối cùng về nội dung gửi đi</li>
+      </ul>
+    </div>
+
+    <label class="flex items-start gap-2 cursor-pointer text-sm text-slate-700">
+      <input type="checkbox" id="disclaimerCheck" class="mt-0.5 accent-indigo-600" />
+      <span>Tôi đã đọc và đồng ý với các lưu ý trên</span>
+    </label>
+
+    <div class="flex gap-3 pt-1">
+      <button onclick="acceptDisclaimer()"
+        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+        Đồng ý và tiếp tục
+      </button>
+      <button onclick="closeDisclaimer()"
+        class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-sm transition-colors">
+        Hủy
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ SETTINGS PANEL -->
+<div id="settingsPanel" class="hidden fixed inset-0 z-40 bg-black/50 flex items-start justify-end p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mt-14 p-5 space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="font-bold text-slate-800 text-sm">⚙️ Cài đặt</h2>
+      <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+    </div>
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-slate-700">Gemini API Key</label>
+      <input id="apiKeyInput" type="password" placeholder="AIza..."
+        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono" />
+      <p class="text-xs text-slate-500">
+        Lấy key miễn phí tại
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
+          class="text-indigo-500 underline">aistudio.google.com/app/apikey</a>
+      </p>
+    </div>
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-slate-700">Model AI</label>
+      <select id="modelSelect"
+        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <option value="gemini-2.5-flash">⚡ Flash — Ổn định, 250 req/ngày (khuyến nghị)</option>
+        <option value="gemini-2.5-flash-lite">🚀 Flash Lite — Cực nhanh, 1000 req/ngày</option>
+        <option value="gemini-2.5-pro">🎯 Pro — Chất lượng cao nhất (hay bị 429)</option>
+      </select>
+      <p class="text-xs text-slate-500">
+        💡 <strong>Flash</strong> là lựa chọn cân bằng nhất. <strong>Pro</strong> chất lượng cao hơn nhưng giới hạn chặt (5 RPM, 100 RPD) và hay bị từ chối do Google ưu tiên paid users.
+      </p>
+    </div>
+    <button onclick="saveApiKey()"
+      class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+      Lưu key
+    </button>
+    <div id="keyStatus" class="text-xs text-center font-medium"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ HEADER -->
+<header class="bg-indigo-600 text-white px-4 py-4 shadow-md">
+  <div class="max-w-2xl mx-auto flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight">TA Report Helper</h1>
+      <p class="text-indigo-200 text-sm mt-0.5">Công cụ soạn tin báo cáo gửi phụ huynh — nhanh, giọng văn gần gũi.</p>
+    </div>
+    <button onclick="toggleSettings()" title="Cài đặt"
+      class="ml-4 shrink-0 bg-indigo-500 hover:bg-indigo-400 rounded-full w-9 h-9 flex items-center justify-center text-lg transition-colors">
+      ⚙️
+    </button>
+  </div>
+</header>
+
+<!-- WELCOME MODAL (hiện khi mở trang lần đầu) -->
+<div id="welcomeModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl">👋</div>
+      <h2 class="text-xl font-bold text-slate-800">Chào bạn, đọc kỹ trước khi dùng nhé!</h2>
+    </div>
+    
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+      <p class="font-semibold text-amber-900 text-sm">⚠️ Đây là công cụ HỖ TRỢ — không thể thay thế cho TA</p>
+      <p class="text-sm text-slate-700 leading-relaxed">
+        Phần mềm này giúp bạn soạn nhanh khung báo cáo, nhưng <strong>không nên gửi nguyên văn</strong> cho phụ huynh.
+      </p>
+    </div>
+    
+    <div class="space-y-3 text-sm text-slate-700">
+      <p class="font-semibold text-slate-800">✅ Trách nhiệm của TA:</p>
+      <ul class="space-y-2 pl-1">
+        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Đọc kỹ</strong> toàn bộ báo cáo trước khi gửi PH.</span></li>
+        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Cá nhân hóa</strong> bằng cách thêm các quan sát thực tế về bé, tránh sử dụng toàn bộ văn bản rập khuôn.</span></li>
+        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Sửa lại</strong> những chỗ không đúng với tình hình thực tế của bé.</span></li>
+        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Chịu trách nhiệm</strong> cuối cùng về nội dung gửi PH.</span></li>
+      </ul>
+    </div>
+    
+    <div class="space-y-3 text-sm text-slate-700">
+      <p class="font-semibold text-slate-800">❌ Tránh:</p>
+      <ul class="space-y-2 pl-1">
+        <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Copy-paste nguyên văn mà không đọc lại.</span></li>
+        <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Nhập SĐT, địa chỉ, hay thông tin nhạy cảm vào ô ghi chú.</span></li>
+        <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Báo cáo sơ sài khiến PH hiểu nhầm tình hình của bé.</span></li>
+      </ul>
+    </div>
+    
+    <p class="text-xs text-slate-500 italic border-t pt-3">
+      Mục tiêu là tiết kiệm thời gian gõ máy để bạn có thể tập trung vào quan sát và chăm sóc bé tốt hơn ạ. 💙
+    </p>
+    
+    <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+      <input type="checkbox" id="dontShowWelcome" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-400" />
+      Không hiện lại lần sau
+    </label>
+    
+    <button onclick="closeWelcomeModal()"
+      class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
+      Tôi đã hiểu, bắt đầu thôi!
+    </button>
+  </div>
+</div>
+
+<main class="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+  <!-- AI GUIDE SECTION (hướng dẫn lấy API key + chọn model) -->
+  <section class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 p-5 space-y-3">
+    <button onclick="toggleAiGuide()" class="w-full flex items-center justify-between text-left">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✨</span>
+        <h2 class="font-semibold text-slate-800 text-sm">Hướng dẫn dùng tính năng AI (tùy chọn)</h2>
+      </div>
+      <span id="aiGuideChevron" class="text-slate-400 transition-transform">▼</span>
+    </button>
+    
+    <div id="aiGuideContent" class="hidden space-y-4 pt-2">
+      <p class="text-sm text-slate-600 leading-relaxed">
+        Sau khi tạo báo cáo, bạn có thể bấm <strong>"✨ Viết lại bằng AI"</strong> để báo cáo tự nhiên và đa dạng hơn. Tính năng này dùng Google Gemini miễn phí.
+      </p>
+      
+      <div class="bg-white rounded-lg p-4 space-y-3 border border-indigo-100">
+        <h3 class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+          <span class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">1</span>
+          Lấy API Key miễn phí
+        </h3>
+        <ol class="text-sm text-slate-700 space-y-1.5 pl-2">
+          <li>• Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
+              class="text-indigo-600 underline font-medium">aistudio.google.com/app/apikey</a></li>
+          <li>• Đăng nhập bằng tài khoản Google</li>
+          <li>• Bấm <strong>"Create API key"</strong> → chọn project (hoặc tạo mới) → copy key</li>
+          <li>• Mở <strong>⚙️ Cài đặt</strong> ở góc trên phải → dán key vào → bấm Lưu</li>
+        </ol>
+        <p class="text-xs text-slate-500 italic">Hoàn toàn miễn phí, không cần thẻ tín dụng.</p>
+      </div>
+      
+      <div class="bg-white rounded-lg p-4 space-y-3 border border-indigo-100">
+        <h3 class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+          <span class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">2</span>
+          Chọn Model phù hợp
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex gap-3 items-start">
+            <span class="shrink-0 mt-0.5">⚡</span>
+            <div>
+              <p class="font-semibold text-slate-800">Flash <span class="text-xs font-normal text-emerald-600">— Khuyến nghị</span></p>
+              <p class="text-slate-600 text-xs">Nhanh, ổn định, 250 lượt/ngày. Đủ dùng cho 1 lớp ~20 bé. <strong>Chọn cái này nếu phân vân.</strong></p>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start">
+            <span class="shrink-0 mt-0.5">🚀</span>
+            <div>
+              <p class="font-semibold text-slate-800">Flash Lite</p>
+              <p class="text-slate-600 text-xs">Cực nhanh, 1000 lượt/ngày, nhưng chất lượng văn phong thấp hơn Flash một chút.</p>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start">
+            <span class="shrink-0 mt-0.5">🎯</span>
+            <div>
+              <p class="font-semibold text-slate-800">Pro <span class="text-xs font-normal text-amber-600">— Hay bị từ chối</span></p>
+              <p class="text-slate-600 text-xs">Chất lượng cao nhất, viết tự nhiên nhất. Nhưng giới hạn 100 lượt/ngày, 5 lượt/phút, và Google thường ưu tiên paid users nên hay bị 429. Nếu Pro fail, app sẽ tự fallback sang Flash.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
+        🔒 <strong>Lưu ý quyền riêng tư:</strong> Khi dùng AI, nội dung được gửi tới Google. Tên thật của bé được tự động ẩn (chỉ gửi nickname). Đừng nhập SĐT, địa chỉ, hay thông tin nhạy cảm vào các ô ghi chú.
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDENT INFO -->
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+    <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Thông tin học sinh</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Họ và tên đầy đủ</label>
+        <input id="fullName" type="text" placeholder="VD: Nguyễn Văn A"
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Tên thay thế (nickname)</label>
+        <input id="nickName" type="text" placeholder="VD: Adam, Andy..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        <p class="text-xs text-slate-400 mt-1">💡 Đặt nickname khác biệt rõ với tên thật (vd: "Adam, Andy..." thay vì "A").
+          Đây là tên được gửi sang AI để bảo vệ thông tin của bé.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODE SELECTOR -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <button id="btnMode1" onclick="setMode(1)"
+      class="btn-mode flex items-center gap-3 bg-white border-2 border-slate-200 rounded-2xl px-5 py-4 text-left hover:border-indigo-400 hover:bg-indigo-50 shadow-sm">
+      <span class="text-2xl">📊</span>
+      <div>
+        <div class="font-semibold text-sm">Báo cáo điểm thi</div>
+        <div class="text-xs text-slate-500">Cuối khóa</div>
+      </div>
+    </button>
+    <button id="btnMode2" onclick="setMode(2)"
+      class="btn-mode flex items-center gap-3 bg-white border-2 border-slate-200 rounded-2xl px-5 py-4 text-left hover:border-indigo-400 hover:bg-indigo-50 shadow-sm">
+      <span class="text-2xl">📅</span>
+      <div>
+        <div class="font-semibold text-sm">Báo cáo tháng</div>
+        <div class="text-xs text-slate-500">Tình hình học tập</div>
+      </div>
+    </button>
+  </section>
+
+  <!-- MODE 1 FORM -->
+  <section id="form1" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+    <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Điểm thi cuối khóa</h2>
+    <div class="space-y-3" id="skillRows"></div>
+    <div class="space-y-3 pt-2 border-t border-slate-100">
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Các điểm ngữ pháp bé sai <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <textarea id="grammarMistakes" rows="2" placeholder="VD: quên 's' cho ngôi thứ 3, dùng sai thì..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Chủ đề từ vựng bé chưa nắm rõ <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <textarea id="vocabGaps" rows="2" placeholder="VD: từ về nghề nghiệp, tính từ miêu tả..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Ghi chú thêm về quá trình học trong khóa <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <textarea id="extraNotes1" rows="2" placeholder="VD: bé tích cực, hay xung phong..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+        <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODE 2 FORM -->
+  <section id="form2" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+    <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Tình hình học tập tháng này</h2>
+    <div id="categoryGroups" class="space-y-5"></div>
+    <div class="space-y-3 pt-2 border-t border-slate-100">
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Điểm ngữ pháp mới của khóa <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <input id="grammarPoint" type="text" placeholder="VD: Thì Tương lai gần (Be going to)"
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Lỗi sai phổ biến về ngữ pháp đó <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <textarea id="grammarErrors2" rows="2" placeholder="VD: hay quên Tobe trước going to..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Ghi chú riêng về bé tháng này <span class="text-slate-400">(tuỳ chọn)</span></label>
+        <textarea id="extraNotes2" rows="2" placeholder="VD: bé tiến bộ rõ rệt so với tháng trước..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+        <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM ACTION BAR -->
+  <section id="actionBar" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+      <div class="flex-1 space-y-1">
+        <label class="block text-sm text-slate-600">Khung giờ gọi lại</label>
+        <input id="timeSlot" type="text" placeholder="VD: 8:00 – 9:00 sáng"
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+      <div class="flex-1 space-y-1">
+        <label class="block text-sm text-slate-600">Ngày gọi lại</label>
+        <input id="callDate" type="text" placeholder="VD: thứ Bảy ngày 17/5"
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+      <button onclick="generate()"
+        class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
+        ✨ Tạo báo cáo
+      </button>
+    </div>
+  </section>
+
+  <!-- AI WARNING BANNER (shown after AI used) -->
+  <div id="aiBanner" class="hidden bg-amber-50 border border-amber-300 rounded-xl px-4 py-2.5 text-xs text-amber-800 font-medium">
+    ⚠ Output từ AI — vui lòng đọc kỹ và đối chiếu với thông tin thực tế về bé trước khi gửi PH.
+  </div>
+
+  <!-- OUTPUT PANEL -->
+  <section id="outputPanel" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="flex border-b border-slate-100">
+      <button id="tabA" onclick="switchTab('A')"
+        class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500">
+        💬 Tin nhắn gửi PH
+      </button>
+      <button id="tabB" onclick="switchTab('B')"
+        class="flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent">
+        📋 TA Log
+      </button>
+    </div>
+    <div class="p-5 space-y-3">
+
+      <!-- Panel A: parent message -->
+      <div id="panelA">
+        <pre id="outputParent" class="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button onclick="copyText('outputParent', 'copyBtnA')" id="copyBtnA"
+            class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full transition-colors">
+            Sao chép
+          </button>
+          <button onclick="triggerAI('standard')" id="aiBtnStandard"
+            class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-full transition-colors font-medium"
+            title="Đa dạng câu chữ, vẫn giọng lễ phép trang trọng">
+            ✨ Viết lại bằng AI
+          </button>
+          <button onclick="triggerAI('humanize')" id="aiBtnHumanize"
+            class="text-xs bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-full transition-colors font-medium"
+            title="Cắt rườm rà, gần gũi như TA nói chuyện thực tế với PH">
+            💬 Humanize
+          </button>
+          <button onclick="revertAI()" id="revertBtn"
+            class="hidden text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-1.5 rounded-full transition-colors font-medium">
+            ↩ Quay lại bản gốc
+          </button>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">
+          <strong class="text-indigo-600">✨ Viết lại</strong>: tinh chỉnh giọng văn, vẫn lễ phép trang trọng.
+          <strong class="text-purple-600">💬 Humanize</strong>: cắt từ thừa, văn ngắn gọn gần gũi (phù hợp PH thân thiết).
+        </p>
+        <p class="text-xs text-slate-400 mt-1">Tính năng AI gửi nội dung qua Google. Tên bé được ẩn tự động. TA chịu trách nhiệm kiểm tra output.</p>
+      </div>
+
+      <!-- Panel B: TA Log -->
+      <div id="panelB" class="hidden">
+        <pre id="outputLog" class="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+        <button onclick="copyText('outputLog', 'copyBtnB')" id="copyBtnB"
+          class="mt-3 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full transition-colors">
+          Sao chép
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let currentMode = 0;
+let originalParentText = '';   // stores pre-AI version
+
+// ─── SKILLS (Mode 1) ────────────────────────────────────────────────────────
+const SKILLS = [
+  { id: 'vocab',     label: 'Từ vựng',  vn: 'từ vựng' },
+  { id: 'grammar',   label: 'Ngữ pháp', vn: 'ngữ pháp' },
+  { id: 'listening', label: 'Nghe',     vn: 'nghe' },
+  { id: 'reading',   label: 'Đọc',      vn: 'đọc hiểu' },
+  { id: 'writing',   label: 'Viết',     vn: 'viết' },
+  { id: 'speaking',  label: 'Nói',      vn: 'nói' },
+];
+
+// ─── TIER LOGIC ─────────────────────────────────────────────────────────────
+function getTier(pct) {
+  if (pct >= 90) return { label: 'Xuất sắc',   color: 'bg-emerald-100 text-emerald-700', key: 'EXCELLENT' };
+  if (pct >= 80) return { label: 'Tốt',        color: 'bg-blue-100 text-blue-700',       key: 'GOOD' };
+  if (pct >= 65) return { label: 'Khá',        color: 'bg-yellow-100 text-yellow-700',   key: 'AVERAGE' };
+  return               { label: 'Cần cố gắng', color: 'bg-red-100 text-red-700',         key: 'WEAK' };
+}
+
+// Per-skill × per-tier phrasings — riêng biệt cho từng kỹ năng, không dùng template chung
+const SKILL_TIER_PHRASES = {
+  // Khi Vocab + Grammar cùng tier sẽ gộp thành 1 câu
+  vocab_grammar: {
+    EXCELLENT: `Con đạt kết quả xuất sắc về từ vựng và ngữ pháp ạ. Con nắm bài rất tốt, hiểu rõ nghĩa của từ vựng và nắm rõ cách dùng ngữ pháp trong bài ạ.`,
+    GOOD:      `Về phần từ vựng và ngữ pháp, con làm bài khá tốt, đa số con đã nắm được ạ. Tuy nhiên còn một số câu con vẫn nhầm lẫn, cần ôn lại để chắc kiến thức hơn ạ.`,
+    AVERAGE:   `Về phần từ vựng và ngữ pháp, con nắm được phần cơ bản nhưng còn mắc khá nhiều lỗi ạ. Con cần ôn lại lý thuyết và làm thêm bài tập để nắm chắc kiến thức hơn ạ.`,
+    WEAK:      `Phần từ vựng và ngữ pháp của con còn hạn chế ạ. Con chưa nhớ rõ từ vựng và còn lúng túng khi áp dụng ngữ pháp. Mình cần ôn lại từ đầu và học từ vựng đều đặn mỗi ngày để cải thiện ạ.`,
+  },
+  vocab: {
+    EXCELLENT: `Về từ vựng, con đạt kết quả xuất sắc ạ. Con nhớ và hiểu rõ nghĩa của các từ trong khóa học ạ.`,
+    GOOD:      `Về phần từ vựng, con làm khá tốt, đa số từ vựng con đã nhớ ạ. Tuy nhiên còn một vài từ con chưa thật vững, cần ôn lại thêm ạ.`,
+    AVERAGE:   `Về từ vựng, con đã nhớ được phần cơ bản nhưng còn quên một số từ ạ. Con cần ôn từ vựng đều đặn mỗi ngày để nhớ lâu hơn ạ.`,
+    WEAK:      `Phần từ vựng của con còn hạn chế, con chưa nhớ được nhiều từ trong khóa học ạ. Con cần học từ vựng mỗi ngày và làm thêm bài tập để củng cố ạ.`,
+  },
+  grammar: {
+    EXCELLENT: `Về ngữ pháp, con đạt kết quả xuất sắc, con nắm rõ và biết cách áp dụng vào bài thi ạ.`,
+    GOOD:      `Về ngữ pháp, con làm khá tốt, con hiểu cách dùng các cấu trúc trong khóa học ạ. Chỉ cần cẩn thận hơn ở một số chi tiết nhỏ là sẽ chính xác hơn ạ.`,
+    AVERAGE:   `Về ngữ pháp, con nắm được lý thuyết cơ bản nhưng còn lúng túng khi áp dụng vào bài tập ạ. Con cần làm thêm bài tập thực hành để vững hơn ạ.`,
+    WEAK:      `Phần ngữ pháp của con còn yếu, con còn nhầm lẫn nhiều cấu trúc ạ. Con cần ôn lại lý thuyết và làm bài tập theo từng chủ điểm để cải thiện ạ.`,
+  },
+  listening: {
+    EXCELLENT: `Con làm bài nghe rất tốt ạ. Con nghe được nội dung chính cũng như nắm được các chi tiết quan trọng trong bài ạ.`,
+    GOOD:      `Về phần nghe, con làm khá tốt, con nắm được ý chính và đa số chi tiết của bài ạ. Chỉ cần luyện nghe thêm để bắt được những chi tiết nhỏ là sẽ tốt hơn ạ.`,
+    AVERAGE:   `Về phần nghe, con hiểu được phần lớn nội dung của bài ạ. Tuy nhiên con cần đầu tư thêm thời gian luyện tập kỹ năng này để kết quả tốt hơn ạ.`,
+    WEAK:      `Kỹ năng nghe của con còn hạn chế, con chưa bắt được rõ nội dung của bài nghe ạ. Con cần nghe thêm các bài tương tự hằng ngày để quen với tốc độ và phát âm ạ.`,
+  },
+  reading: {
+    EXCELLENT: `Con đạt kết quả xuất sắc về đọc hiểu ạ. Con hiểu và nắm rõ nội dung của bài đọc ạ.`,
+    GOOD:      `Về phần đọc hiểu, con làm tốt, con hiểu được nội dung chính của bài ạ. Chỉ cần chú ý thêm một số chi tiết nhỏ là sẽ chính xác hơn ạ.`,
+    AVERAGE:   `Về phần đọc hiểu, con hiểu được phần lớn nội dung của bài ạ. Tuy nhiên con cần luyện đọc thêm để bắt được những chi tiết nhỏ và suy luận trong câu hỏi ạ.`,
+    WEAK:      `Kỹ năng đọc hiểu của con còn hạn chế, con chưa nắm được rõ nội dung của bài đọc ạ. Con cần chịu khó luyện đọc thêm các bài tương tự để cải thiện ạ.`,
+  },
+  writing: {
+    EXCELLENT: `Bài thi viết của con rất tốt ạ. Con viết chính xác, đầy đủ ý và bố cục rõ ràng ạ.`,
+    GOOD:      `Về phần viết, con làm tốt ạ. Con hiểu bài và biết cách dùng, chỉ cần cẩn thận hơn ở một vài chi tiết nhỏ là sẽ hoàn thiện hơn nữa ạ.`,
+    AVERAGE:   `Về phần viết, con đã thể hiện được ý chính nhưng còn mắc lỗi ngữ pháp và chính tả ạ. Con cần luyện viết thêm và kiểm tra kỹ trước khi nộp bài ạ.`,
+    WEAK:      `Phần viết của con còn cần cải thiện, con chưa diễn đạt được ý đầy đủ và còn mắc nhiều lỗi ạ. Con cần luyện viết thường xuyên hơn và xem lại cấu trúc câu cơ bản ạ.`,
+  },
+  speaking: {
+    EXCELLENT: `Ở phần thi nói, con nói rất tốt ạ. Con phát âm chính xác, trả lời đúng trọng tâm câu hỏi và có phản xạ nhanh ạ.`,
+    GOOD:      `Ở phần thi nói, con nói tốt, phát âm chính xác và trả lời đúng trọng tâm của câu hỏi ạ. Tuy nhiên con cần luyện tập nhiều hơn để có phản xạ nhanh hơn và hạn chế vấp khi nói ạ.`,
+    AVERAGE:   `Về phần nói, con đã giao tiếp được những câu cơ bản, tuy nhiên còn vấp và chưa thật sự tự tin ạ. Con cần luyện nói thường xuyên hơn để phát âm rõ và phản xạ tốt hơn ạ.`,
+    WEAK:      `Phần thi nói của con còn cần cải thiện, con còn rụt rè và phát âm chưa thật rõ ạ. Con nên luyện nói tiếng Anh nhiều hơn ở nhà, kể cả những câu đơn giản, để tự tin hơn ạ.`,
+  },
+};
+
+function skillPhrase(skillId, tierKey) {
+  return SKILL_TIER_PHRASES[skillId]?.[tierKey] || '';
+}
+
+// ─── BUILD SKILL ROWS ────────────────────────────────────────────────────────
+function buildSkillRows() {
+  const container = document.getElementById('skillRows');
+  container.innerHTML = '';
+  SKILLS.forEach(sk => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2';
+    row.innerHTML = `
+      <span class="text-sm text-slate-600 w-20 shrink-0">${sk.label}</span>
+      <input id="score_${sk.id}" type="number" min="0" placeholder="Điểm"
+        class="w-20 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        oninput="updateBadge('${sk.id}')" />
+      <span class="text-slate-400 text-sm">/</span>
+      <input id="max_${sk.id}" type="number" min="0" placeholder="Tối đa"
+        class="w-20 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        oninput="updateBadge('${sk.id}')" />
+      <span id="badge_${sk.id}" class="tier-badge hidden"></span>`;
+    container.appendChild(row);
+  });
+}
+
+function updateBadge(id) {
+  const score = parseFloat(document.getElementById('score_' + id).value);
+  const max   = parseFloat(document.getElementById('max_'   + id).value);
+  const badge = document.getElementById('badge_' + id);
+  if (!max || isNaN(score) || isNaN(max)) { badge.classList.add('hidden'); return; }
+  const tier = getTier(score / max * 100);
+  badge.textContent = tier.label;
+  badge.className = 'tier-badge ' + tier.color;
+  badge.classList.remove('hidden');
+}
+
+// ─── MODE 2 DATA (39 phrasings) ──────────────────────────────────────────────
+const CAT_GROUPS = [
+  {
+    title: 'Thái độ & Tập trung',
+    cats: [
+      {
+        id: 'attitude', label: 'Thái độ học tập trong lớp',
+        opts: {
+          TOT: 'Bé có thái độ học tập rất tốt ạ. Em quan sát thấy bé ngoan, chăm chú lắng nghe và tích cực tham gia các hoạt động trong lớp ạ.',
+          ON:  'Thái độ học tập của bé nhìn chung ổn ạ. Bé nghe bài tuy nhiên đôi khi còn mất tập trung hoặc làm việc riêng một chút ạ.',
+          CAN: 'Thái độ học tập của bé cần cải thiện ạ. Em thấy bé hay nói chuyện riêng, chưa thật sự tập trung vào bài học trên lớp ạ.',
+        },
+      },
+      {
+        id: 'focus', label: 'Khả năng tập trung',
+        opts: {
+          TOT: 'Bé tập trung rất tốt trong suốt buổi học ạ. Bé ít bị phân tâm và luôn chú ý theo dõi bài giảng ạ.',
+          ON:  'Bé tập trung được ở mức ổn ạ. Tuy nhiên đôi khi bé còn dễ bị phân tâm, nhất là vào cuối buổi học ạ.',
+          CAN: 'Khả năng tập trung của bé còn cần cải thiện ạ. Bé thường xuyên mất tập trung, ảnh hưởng đến việc tiếp thu bài ạ.',
+        },
+      },
+      {
+        id: 'interact', label: 'Tương tác với bạn và thầy cô',
+        opts: {
+          TOT: 'Bé tương tác rất tốt với bạn bè và thầy cô ạ. Bé chủ động phát biểu, hỏi bài và hỗ trợ các bạn trong nhóm ạ.',
+          ON:  'Bé tương tác ổn với bạn bè và thầy cô ạ. Bé trả lời khi được hỏi nhưng chưa chủ động xung phong phát biểu nhiều ạ.',
+          CAN: 'Bé còn khá thụ động trong việc tương tác với bạn và thầy cô ạ. Bé ít phát biểu và chưa chủ động tham gia các hoạt động nhóm ạ.',
+        },
+      },
+    ],
+  },
+  {
+    title: 'Hiểu bài & Kiến thức',
+    cats: [
+      {
+        id: 'comprehension', label: 'Khả năng nắm bài học',
+        opts: {
+          TOT: 'Bé nắm bài rất tốt ạ. Em thấy bé hiểu bài nhanh, làm bài tập đúng và biết áp dụng kiến thức vào các tình huống khác nhau ạ.',
+          ON:  'Bé nắm bài ở mức ổn ạ. Bé hiểu được nội dung chính nhưng đôi khi cần thầy cô giải thích thêm ở một số phần ạ.',
+          CAN: 'Khả năng nắm bài của bé cần cải thiện ạ. Bé còn tiếp thu chậm, hay cần được nhắc lại và hướng dẫn thêm mới hiểu bài ạ.',
+        },
+      },
+      {
+        id: 'pronunciation', label: 'Phát âm từ vựng mới',
+        opts: {
+          TOT: 'Bé phát âm từ vựng mới rất tốt ạ. Mỗi khi gặp từ mới, em thấy bé chịu khó đọc và phát âm chính xác, chuẩn ạ.',
+          ON:  'Bé phát âm từ vựng ở mức ổn ạ. Bé đọc được hầu hết từ mới tuy nhiên một số từ khó bé vẫn còn phát âm chưa thật chính xác ạ.',
+          CAN: 'Phát âm từ vựng của bé cần được cải thiện ạ. Bé còn hay phát âm sai nhiều từ mới, cần luyện tập thêm ở nhà ạ.',
+        },
+      },
+      {
+        id: 'grammarKnow', label: 'Nắm ngữ pháp khóa hiện tại',
+        opts: {
+          TOT: 'Bé nắm ngữ pháp khóa này rất tốt ạ. Bé áp dụng đúng cấu trúc, ít mắc lỗi và làm bài tập ngữ pháp chính xác ạ.',
+          ON:  'Bé nắm ngữ pháp ở mức ổn ạ. Bé hiểu cấu trúc cơ bản nhưng đôi khi còn nhầm lẫn hoặc quên một vài chi tiết nhỏ ạ.',
+          CAN: 'Bé chưa nắm vững ngữ pháp khóa này ạ. Bé còn hay mắc lỗi khi dùng cấu trúc, cần ôn lại kỹ hơn ạ.',
+        },
+      },
+    ],
+  },
+  {
+    title: 'Kỹ năng tiếng Anh',
+    cats: [
+      {
+        id: 'speaking2', label: 'Giao tiếp tiếng Anh / Nói',
+        opts: {
+          TOT: 'Bé giao tiếp tốt, nói tiếng Anh rõ ràng và phát âm khá chuẩn ạ. Bé chủ động tham gia phát biểu trong lớp ạ.',
+          ON:  'Bé giao tiếp được những câu đơn giản, trả lời được câu hoàn chỉnh có chủ ngữ vị ngữ ạ. Tuy nhiên bé còn nói nhỏ và khá rụt rè ạ.',
+          CAN: 'Bé giao tiếp còn khá yếu ạ. Bé hiểu câu hỏi nhưng còn ngại trả lời và ít chủ động dùng tiếng Anh trong lớp ạ.',
+        },
+      },
+      {
+        id: 'confidence', label: 'Mức độ tự tin khi phát biểu',
+        opts: {
+          TOT: 'Bé rất tự tin khi phát biểu ạ. Bé mạnh dạn giơ tay, nói to rõ ràng và không ngại mắc lỗi ạ.',
+          ON:  'Bé tự tin ở mức ổn ạ. Bé trả lời được khi được gọi tuy nhiên chưa chủ động xung phong và đôi khi còn ngập ngừng ạ.',
+          CAN: 'Bé còn thiếu tự tin khi phát biểu ạ. Bé hay nói nhỏ, rụt rè và thường chờ thầy cô mời mới chịu trả lời ạ.',
+        },
+      },
+      {
+        id: 'listening2', label: 'Kỹ năng Nghe',
+        opts: {
+          TOT: 'Kỹ năng nghe của bé rất tốt ạ. Bé nghe hiểu nội dung bài, nắm bắt thông tin chính xác và làm bài nghe tốt ạ.',
+          ON:  'Kỹ năng nghe của bé ổn ạ. Bé hiểu được nội dung cơ bản nhưng đôi khi còn bỏ sót một số chi tiết nhỏ ạ.',
+          CAN: 'Kỹ năng nghe của bé cần cải thiện ạ. Bé còn khó bắt kịp tốc độ bài nghe và hay bỏ sót thông tin quan trọng ạ.',
+        },
+      },
+      {
+        id: 'reading2', label: 'Kỹ năng Đọc hiểu',
+        opts: {
+          TOT: 'Kỹ năng đọc hiểu của bé rất tốt ạ. Bé đọc bài nhanh, hiểu nội dung và trả lời chính xác các câu hỏi đọc hiểu ạ.',
+          ON:  'Kỹ năng đọc hiểu của bé ổn ạ. Bé hiểu được ý chính nhưng đôi khi cần thêm thời gian để xử lý thông tin chi tiết ạ.',
+          CAN: 'Kỹ năng đọc hiểu của bé cần cải thiện ạ. Bé còn gặp khó khăn khi đọc đoạn văn dài và hay hiểu sai ý câu hỏi ạ.',
+        },
+      },
+      {
+        id: 'writing2', label: 'Kỹ năng Viết',
+        opts: {
+          TOT: 'Kỹ năng viết của bé rất tốt ạ. Bé viết câu đúng ngữ pháp, dùng từ đa dạng và trình bày ý rõ ràng ạ.',
+          ON:  'Kỹ năng viết của bé ổn ạ. Bé viết được câu hoàn chỉnh tuy nhiên đôi khi còn sai ngữ pháp nhỏ hoặc dùng từ chưa chính xác ạ.',
+          CAN: 'Kỹ năng viết của bé cần cải thiện ạ. Bé còn hay viết sai ngữ pháp, câu chưa hoàn chỉnh và vốn từ dùng trong bài còn hạn chế ạ.',
+        },
+      },
+    ],
+  },
+  {
+    title: 'Bài tập về nhà',
+    cats: [
+      {
+        id: 'hwReminder', label: 'Bài tập trong cuốn Reminder',
+        opts: {
+          TOT: 'Bài tập trong cuốn Reminder bé hoàn thành đầy đủ và cẩn thận ạ. Em thấy bé làm bài sạch sẽ, đúng hạn ạ.',
+          ON:  'Bài tập trong cuốn Reminder bé hoàn thành tương đối ạ. Tuy nhiên đôi khi còn thiếu một vài bài nhỏ ạ.',
+          CAN: 'Bé còn thiếu khá nhiều bài tập trong cuốn Reminder ạ. Nhờ mẹ nhắc bé hoàn thành đầy đủ để củng cố kiến thức ạ.',
+        },
+      },
+      {
+        id: 'hwSmart', label: 'Bài tập trên hệ thống Smart Learning',
+        opts: {
+          TOT: 'Bài tập trên hệ thống Smart Learning bé hoàn thành đầy đủ ạ. Bé làm bài đúng hạn và kết quả tốt ạ.',
+          ON:  'Bài tập trên Smart Learning bé hoàn thành phần lớn ạ. Tuy nhiên vẫn còn một vài bài chưa nộp ạ.',
+          CAN: 'Bài tập trên hệ thống Smart Learning của bé còn thiếu khá nhiều bài ạ. Nhờ mẹ nhắc bé vào hệ thống làm bài đầy đủ hơn ạ.',
+        },
+      },
+    ],
+  },
+];
+
+// ─── BUILD MODE 2 FORM ───────────────────────────────────────────────────────
+function buildCategoryGroups() {
+  const container = document.getElementById('categoryGroups');
+  container.innerHTML = '';
+  CAT_GROUPS.forEach(group => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'space-y-3';
+    const title = document.createElement('h3');
+    title.className = 'text-xs font-semibold uppercase text-slate-500 tracking-wide';
+    title.textContent = group.title;
+    groupEl.appendChild(title);
+    group.cats.forEach(cat => {
+      const catEl = document.createElement('div');
+      catEl.className = 'space-y-1';
+      catEl.innerHTML = `<div class="text-sm text-slate-600">${cat.label}</div>
+        <div class="flex gap-2 flex-wrap">
+          <button type="button" onclick="selectOpt('${cat.id}','TOT',this)"
+            class="opt-btn flex-1 min-w-[80px] border border-slate-200 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700"
+            data-cat="${cat.id}" data-val="TOT">TỐT</button>
+          <button type="button" onclick="selectOpt('${cat.id}','ON',this)"
+            class="opt-btn flex-1 min-w-[80px] border border-slate-200 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+            data-cat="${cat.id}" data-val="ON">ỔN</button>
+          <button type="button" onclick="selectOpt('${cat.id}','CAN',this)"
+            class="opt-btn flex-1 min-w-[80px] border border-slate-200 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700"
+            data-cat="${cat.id}" data-val="CAN">CẦN CẢI THIỆN</button>
+        </div>`;
+      groupEl.appendChild(catEl);
+    });
+    container.appendChild(groupEl);
+  });
+}
+
+const mode2Selections = {};
+
+function selectOpt(catId, val, btn) {
+  mode2Selections[catId] = val;
+  document.querySelectorAll(`[data-cat="${catId}"]`).forEach(b => {
+    b.classList.remove(
+      'bg-emerald-100','text-emerald-700','border-emerald-400',
+      'bg-blue-100','text-blue-700','border-blue-400',
+      'bg-amber-100','text-amber-700','border-amber-400','font-bold'
+    );
+    b.classList.add('border-slate-200','text-slate-600');
+  });
+  if (val === 'TOT')      btn.classList.add('bg-emerald-100','text-emerald-700','border-emerald-400','font-bold');
+  else if (val === 'ON')  btn.classList.add('bg-blue-100','text-blue-700','border-blue-400','font-bold');
+  else                    btn.classList.add('bg-amber-100','text-amber-700','border-amber-400','font-bold');
+  btn.classList.remove('border-slate-200','text-slate-600');
+}
+
+// ─── MODE SWITCHING ──────────────────────────────────────────────────────────
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('form1').classList.toggle('hidden', m !== 1);
+  document.getElementById('form2').classList.toggle('hidden', m !== 2);
+  document.getElementById('actionBar').classList.remove('hidden');
+  document.getElementById('outputPanel').classList.add('hidden');
+  document.getElementById('aiBanner').classList.add('hidden');
+  const b1 = document.getElementById('btnMode1');
+  const b2 = document.getElementById('btnMode2');
+  if (m === 1) { b1.classList.add('border-indigo-500','bg-indigo-50');  b2.classList.remove('border-indigo-500','bg-indigo-50'); }
+  else         { b2.classList.add('border-indigo-500','bg-indigo-50');  b1.classList.remove('border-indigo-500','bg-indigo-50'); }
+}
+
+// ─── CLOSING LINE ────────────────────────────────────────────────────────────
+function closingLine() {
+  const ts = document.getElementById('timeSlot').value.trim() || '[KHUNG GIỜ]';
+  const dt = document.getElementById('callDate').value.trim()  || '[NGÀY]';
+  return `Dạ vâng ạ. Nếu phụ huynh còn bất kỳ thắc mắc nào hoặc muốn trao đổi thêm về tình hình học tập của bé, phụ huynh vui lòng nhắn xác nhận giúp em. Em sẽ chủ động sắp xếp gọi lại trong khung giờ ${ts} ngày ${dt} để trao đổi cụ thể và đầy đủ hơn với mình ạ. Em cảm ơn phụ huynh rất nhiều.`;
+}
+
+// ─── GENERATE MODE 1 ─────────────────────────────────────────────────────────
+function generateExam() {
+  const full  = document.getElementById('fullName').value.trim();
+  const nick  = document.getElementById('nickName').value.trim();
+  const beRef = nick ? `bé ${nick}` : (full ? `bé ${full.split(' ').pop()}` : 'bé');
+
+  const gramMistakes = document.getElementById('grammarMistakes').value.trim();
+  const vocabGaps    = document.getElementById('vocabGaps').value.trim();
+  const extraNotes   = document.getElementById('extraNotes1').value.trim();
+
+  const results = [];
+  let totalPct = 0, count = 0;
+  SKILLS.forEach(sk => {
+    const score = parseFloat(document.getElementById('score_' + sk.id).value);
+    const max   = parseFloat(document.getElementById('max_'   + sk.id).value);
+    if (!max || isNaN(max) || max <= 0) return;
+    const pct = isNaN(score) ? 0 : score / max * 100;
+    totalPct += pct; count++;
+    results.push({ sk, score: isNaN(score) ? 0 : score, max, pct, tier: getTier(pct) });
+  });
+
+  const avgPct  = count > 0 ? totalPct / count : 0;
+  const avgTier = getTier(avgPct);
+  const paragraphs = [];
+
+  paragraphs.push(`Dạ em chào mẹ ạ. Em xin phép trao đổi với mẹ về kết quả bài thi cuối khóa của bé ${full || 'bé'} ạ.`);
+
+  const overallMap = {
+    EXCELLENT: `Nhìn chung ${beRef} thi rất xuất sắc ạ. Kết quả phản ánh bé đã nắm vững kiến thức và chuẩn bị rất tốt cho kỳ thi ạ. Em rất vui và tự hào về sự tiến bộ của bé ạ.`,
+    GOOD:      `Nhìn chung ${beRef} thi khá tốt ạ. Bé đã thể hiện được năng lực của mình, kết quả tổng thể đáng khích lệ ạ. Chỉ cần chú ý thêm một số kỹ năng là bé sẽ tiến bộ hơn nữa ạ.`,
+    AVERAGE:   `Nhìn chung ${beRef} thi ở mức khá ạ. Bé đã hoàn thành bài thi và nắm được phần cơ bản ạ. Tuy nhiên vẫn còn một số kỹ năng cần đầu tư thêm thời gian luyện tập ạ.`,
+    WEAK:      `Nhìn chung kết quả thi của ${beRef} còn cần cố gắng hơn ạ. Em thấy bé vẫn còn gặp khó khăn ở một số kỹ năng, cần chịu khó ôn tập thêm trong thời gian tới ạ.`,
+  };
+  paragraphs.push(overallMap[avgTier.key]);
+
+  // Logic gộp Vocab + Grammar khi cùng tier, các skill khác giữ riêng
+  const byId = Object.fromEntries(results.map(r => [r.sk.id, r]));
+  const v = byId.vocab, g = byId.grammar;
+  
+  if (v && g && v.tier.key === g.tier.key) {
+    // Gộp Vocab + Grammar
+    paragraphs.push(skillPhrase('vocab_grammar', v.tier.key));
+  } else {
+    if (v) paragraphs.push(skillPhrase('vocab', v.tier.key));
+    if (g) paragraphs.push(skillPhrase('grammar', g.tier.key));
+  }
+  
+  // Các skill còn lại theo thứ tự: Nghe → Đọc → Viết → Nói
+  ['listening', 'reading', 'writing', 'speaking'].forEach(id => {
+    const r = byId[id];
+    if (r) paragraphs.push(skillPhrase(id, r.tier.key));
+  });
+
+  if (gramMistakes) paragraphs.push(`Dạ về phần ngữ pháp, em có ghi nhận ${beRef} còn một số lỗi sai như: ${gramMistakes} ạ. Đây là điểm mà mình cần chú ý ôn lại và luyện tập thêm ạ. Tuy nhiên đây là điều bình thường và bé hoàn toàn có thể cải thiện được nếu chịu khó ôn tập ạ.`);
+  if (vocabGaps)    paragraphs.push(`Về từ vựng, em thấy ${beRef} chưa nắm thật vững các chủ đề: ${vocabGaps} ạ. Em có ghi bổ sung phần từ vựng này trong cuốn Reminder để bé tiện ôn lại ạ. Nhờ mẹ nhắc bé xem lại cuốn Reminder để củng cố từ vựng thêm nhé ạ.`);
+  if (extraNotes)   paragraphs.push(`Dạ thêm một điều em muốn chia sẻ với mẹ về quá trình học của ${beRef} ạ: ${extraNotes} ạ. Em hy vọng ${beRef} sẽ tiếp tục phát huy và tiến bộ hơn nữa trong khóa học tới ạ.`);
+
+  paragraphs.push(closingLine());
+
+  let logParts = ['Báo điểm thi cuối khóa.'];
+  if (count > 0) {
+    const avgLabel = { EXCELLENT:'xuất sắc', GOOD:'tốt', AVERAGE:'khá', WEAK:'cần cố gắng' }[avgTier.key];
+    logParts.push(`Kết quả tổng thể ở mức ${avgLabel} (trung bình ${avgPct.toFixed(1)}%).`);
+    const strong = results.filter(r => r.tier.key === 'EXCELLENT' || r.tier.key === 'GOOD').map(r => r.sk.label);
+    const weak   = results.filter(r => r.tier.key === 'WEAK').map(r => r.sk.label);
+    if (strong.length) logParts.push(`Điểm mạnh: ${strong.join(', ')}.`);
+    if (weak.length)   logParts.push(`Cần cải thiện: ${weak.join(', ')}.`);
+  }
+  if (gramMistakes) logParts.push(`Lỗi ngữ pháp: ${gramMistakes}.`);
+  if (extraNotes)   logParts.push(extraNotes);
+
+  return { parent: paragraphs.join('\n\n'), log: logParts.join(' ') };
+}
+
+// ─── GENERATE MODE 2 ─────────────────────────────────────────────────────────
+function generateMonthly() {
+  const full  = document.getElementById('fullName').value.trim();
+  const nick  = document.getElementById('nickName').value.trim();
+  const beRef = nick ? `bé ${nick}` : (full ? `bé ${full.split(' ').pop()}` : 'bé');
+
+  const grammarPoint  = document.getElementById('grammarPoint').value.trim();
+  const grammarErrors = document.getElementById('grammarErrors2').value.trim();
+  const extraNotes    = document.getElementById('extraNotes2').value.trim();
+
+  function ph(catId) {
+    const val = mode2Selections[catId];
+    if (!val) return null;
+    for (const g of CAT_GROUPS) for (const c of g.cats) if (c.id === catId) return c.opts[val] || null;
+    return null;
+  }
+
+  const paragraphs = [];
+  paragraphs.push(`Dạ em chào mẹ ạ. Em xin phép trao đổi với mẹ tình hình học trên lớp của bé ${full || 'bé'} ạ.`);
+
+  const groupA = [ph('attitude'), ph('focus'), ph('interact')].filter(Boolean);
+  if (groupA.length) paragraphs.push(groupA.join(' '));
+
+  const groupB = [ph('comprehension'), ph('pronunciation'), ph('grammarKnow')].filter(Boolean);
+  let groupBText = groupB.join(' ');
+  if (grammarPoint) {
+    const errPart = grammarErrors ? ` Em có ghi nhận ${beRef} hay ${grammarErrors} ạ.` : '';
+    groupBText += ` Dạ khóa này có ngữ pháp mới là ${grammarPoint}.${errPart} Trên lớp em có hỗ trợ thêm cho bé phần này và đã ghi bổ sung lý thuyết trong cuốn Reminder ạ. Nhờ mẹ nhắc ${beRef} xem lại cuốn Reminder khi làm bài ở nhà nha ạ.`;
+  }
+  if (groupBText.trim()) paragraphs.push(groupBText.trim());
+
+  const groupC = [ph('speaking2'), ph('confidence'), ph('listening2'), ph('reading2'), ph('writing2')].filter(Boolean);
+  if (groupC.length) paragraphs.push(groupC.join(' '));
+
+  const groupD = [ph('hwReminder'), ph('hwSmart')].filter(Boolean);
+  if (groupD.length) paragraphs.push(groupD.join(' '));
+
+  if (extraNotes) paragraphs.push(`Dạ ngoài ra em cũng muốn chia sẻ thêm với mẹ: ${extraNotes} ạ.`);
+  paragraphs.push(closingLine());
+
+  const allCatIds = CAT_GROUPS.flatMap(g => g.cats.map(c => c.id));
+  const catLabel  = id => { for (const g of CAT_GROUPS) for (const c of g.cats) if (c.id === id) return c.label; return id; };
+  const goodCats  = allCatIds.filter(id => mode2Selections[id] === 'TOT');
+  const weakCats  = allCatIds.filter(id => mode2Selections[id] === 'CAN');
+
+  let logParts = ['Báo tình hình học tập.'];
+  if (goodCats.length) logParts.push(`Điểm tốt: ${goodCats.map(catLabel).join(', ')}.`);
+  if (weakCats.length) logParts.push(`Cần cải thiện: ${weakCats.map(catLabel).join(', ')}.`);
+  if (grammarPoint)    logParts.push(`Ngữ pháp mới: ${grammarPoint}${grammarErrors ? ' — lỗi phổ biến: ' + grammarErrors : ''}.`);
+  if (extraNotes)      logParts.push(extraNotes);
+
+  return { parent: paragraphs.join('\n\n'), log: logParts.join(' ') };
+}
+
+// ─── GENERATE ENTRY ──────────────────────────────────────────────────────────
+function generate() {
+  if (!currentMode) { showToast('Vui lòng chọn loại báo cáo trước ạ.', 'warn'); return; }
+  const result = currentMode === 1 ? generateExam() : generateMonthly();
+  originalParentText = result.parent;
+  document.getElementById('outputParent').textContent = result.parent;
+  document.getElementById('outputLog').textContent    = result.log;
+  document.getElementById('outputPanel').classList.remove('hidden');
+  document.getElementById('revertBtn').classList.add('hidden');
+  document.getElementById('aiBanner').classList.add('hidden');
+  switchTab('A');
+  document.getElementById('outputPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const ts = document.getElementById('timeSlot').value.trim();
+  const dt = document.getElementById('callDate').value.trim();
+  if (ts) localStorage.setItem('ta_timeSlot', ts);
+  if (dt) localStorage.setItem('ta_callDate', dt);
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isA = tab === 'A';
+  document.getElementById('panelA').classList.toggle('hidden', !isA);
+  document.getElementById('panelB').classList.toggle('hidden',  isA);
+  document.getElementById('tabA').className = isA
+    ? 'flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500'
+    : 'flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent';
+  document.getElementById('tabB').className = !isA
+    ? 'flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500'
+    : 'flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent';
+}
+
+// ─── COPY ────────────────────────────────────────────────────────────────────
+function copyText(preId, btnId) {
+  const text = document.getElementById(preId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    const orig = btn.textContent;
+    btn.textContent = 'Đã sao chép ✓';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const colors = { error: 'bg-red-600', warn: 'bg-amber-500', ok: 'bg-emerald-600', info: 'bg-slate-700' };
+  const el = document.createElement('div');
+  el.className = `toast text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg max-w-sm text-center ${colors[type] || colors.info}`;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ─── SETTINGS PANEL ──────────────────────────────────────────────────────────
+function toggleSettings() {
+  const panel = document.getElementById('settingsPanel');
+  const isHidden = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden', !isHidden);
+  if (isHidden) {
+    const saved = localStorage.getItem('gemini_api_key') || '';
+    document.getElementById('apiKeyInput').value = saved;
+    const savedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+    document.getElementById('modelSelect').value = savedModel;
+    updateKeyStatus();
+  }
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const model = document.getElementById('modelSelect').value;
+  localStorage.setItem('gemini_model', model);
+  if (key) {
+    localStorage.setItem('gemini_api_key', key);
+    showToast('Đã lưu cài đặt ạ.', 'ok');
+  } else {
+    localStorage.removeItem('gemini_api_key');
+    showToast('Đã xóa API key.', 'info');
+  }
+  updateKeyStatus();
+}
+
+function updateKeyStatus() {
+  const el = document.getElementById('keyStatus');
+  if (localStorage.getItem('gemini_api_key')) {
+    el.textContent = '✓ Đã kết nối';
+    el.className = 'text-xs text-center font-medium text-emerald-600';
+  } else {
+    el.textContent = '⚠ Chưa có key';
+    el.className = 'text-xs text-center font-medium text-amber-600';
+  }
+}
+
+// close settings when clicking backdrop
+document.getElementById('settingsPanel').addEventListener('click', function(e) {
+  if (e.target === this) toggleSettings();
+});
+
+// ─── DISCLAIMER MODAL ────────────────────────────────────────────────────────
+let _aiPendingCallback = null;
+
+function showDisclaimer(onAccept) {
+  _aiPendingCallback = onAccept;
+  document.getElementById('disclaimerCheck').checked = false;
+  document.getElementById('disclaimerModal').classList.remove('hidden');
+}
+
+function acceptDisclaimer() {
+  if (!document.getElementById('disclaimerCheck').checked) {
+    showToast('Vui lòng tích vào ô xác nhận trước ạ.', 'warn');
+    return;
+  }
+  localStorage.setItem('ai_disclaimer_accepted', 'true');
+  localStorage.setItem('ai_disclaimer_ts', Date.now().toString());
+  document.getElementById('disclaimerModal').classList.add('hidden');
+  if (_aiPendingCallback) { _aiPendingCallback(); _aiPendingCallback = null; }
+}
+
+function closeDisclaimer() {
+  document.getElementById('disclaimerModal').classList.add('hidden');
+  _aiPendingCallback = null;
+}
+
+// ─── REDACTION ───────────────────────────────────────────────────────────────
+function redactForAPI(text, studentFullName, studentNickname) {
+  if (!studentNickname || studentNickname.trim() === '') {
+    throw new Error('Cần có Tên thay thế khác biệt với tên thật trước khi dùng AI');
+  }
+  const lowerFull = studentFullName.toLowerCase();
+  const lowerNick = studentNickname.toLowerCase();
+  const lastName  = lowerFull.split(' ').pop();
+  if (lowerFull.includes(lowerNick) || lowerNick.includes(lastName)) {
+    throw new Error('Tên thay thế quá giống tên thật. Hãy chọn nickname khác (vd: Kelvin, Apple, Tom).');
+  }
+
+  let redacted = text;
+  const escapedName = studentFullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  redacted = redacted.replace(new RegExp(escapedName, 'gi'), studentNickname);
+  redacted = redacted.replace(/(0|\+84)[1-9]\d{8,9}/g, '[đã ẩn]');
+  redacted = redacted.replace(/\b\d{9}(\d{3})?\b/g, '[đã ẩn]');
+  return redacted;
+}
+
+function unredactFromAPI(text, studentFullName, studentNickname) {
+  const escapedNick = studentNickname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(escapedNick, 'g'), studentFullName);
+}
+
+// ─── AI PARAPHRASE ENTRY ─────────────────────────────────────────────────────
+function triggerAI(mode = 'standard') {
+  if (!localStorage.getItem('ai_disclaimer_accepted')) {
+    showDisclaimer(() => runAIParaphrase(mode));
+  } else {
+    runAIParaphrase(mode);
+  }
+}
+
+// Build prompt khác nhau theo mode
+function buildAIPrompt(redacted, mode) {
+  // Phần dùng chung cho cả 2 mode: voice anchor + anti-patterns
+  const shared = `
+🎯 VAI TRÒ
+Bạn là TA (trợ giảng) tiếng Anh tại một trung tâm Việt Nam, đang viết tin nhắn BÁO CÁO TÌNH HÌNH HỌC TẬP của bé gửi phụ huynh. Phong cách: KHÁCH QUAN, LỄ PHÉP, PROFESSIONAL — như báo cáo thật giữa giáo viên và PH, KHÔNG phải văn cảm xúc hay văn marketing.
+
+⛔ TUYỆT ĐỐI TRÁNH (các pattern AI-feel "thảo mai" làm văn nghe giả trân — đây là vấn đề LỚN NHẤT):
+
+1. KHÔNG bộc lộ cảm xúc cá nhân của TA. Cấm tuyệt các cụm sau:
+   ❌ "Em rất vui được chia sẻ/kể/trao đổi..."
+   ❌ "Em thực sự ấn tượng với..." / "Em ấn tượng với..."
+   ❌ "Em hơi tiếc một chút là..." / "Em tiếc là..."
+   ❌ "Em rất tự hào về..." / "Em rất vui khi thấy..."
+   ❌ "Khả năng X của bé rất đáng khen"
+   ❌ "Đáng khen là...", "Đáng tự hào là..."
+   ❌ "Bé thực sự là học sinh xuất sắc/đáng yêu"
+   → TA chỉ "quan sát thấy", "thấy bé", "nhận thấy" — KHÔNG cảm thán, KHÔNG khen ngợi cá nhân.
+
+2. KHÔNG dùng từ ngữ flowery / AI-style:
+   ❌ "Hành trình học tập" → ✅ "tình hình học tập"
+   ❌ "Kể mẹ nghe về..." → ✅ "trao đổi với mẹ về..."
+   ❌ "Tinh thần học" → ✅ "thái độ học"
+   ❌ "Tương tác với thầy cô" → CẤM HOÀN TOÀN. Chỉ dùng "hòa đồng với bạn bè", KHÔNG nhắc thầy cô trong context giao tiếp xã hội của bé.
+   ❌ "Đồng thời", "Bên cạnh việc..." → ✅ "Bên cạnh đó", "Ngoài ra"
+   ❌ "Mà" làm connector chuyển ý → ✅ "Tuy nhiên"
+
+3. KHÔNG mở đầu câu nhận xét bằng cảm xúc của TA:
+   ❌ "Em ấn tượng với...", "Em hơi tiếc...", "Em rất vui..."
+   ✅ "Trên lớp em quan sát thấy...", "Về phần [skill]...", "Phần [skill] của bé...", "Khả năng [X] của bé...", "Bên cạnh đó,...", "Tuy nhiên,..."
+
+✅ VOICE ANCHOR — viết theo phong cách chuẩn mực này:
+
+CÂU MỞ ĐẦU (dùng 1 trong 2, KHÔNG sáng tạo khác):
+- Báo cáo tháng: "Dạ em chào mẹ ạ. Em xin phép trao đổi với mẹ tình hình học tập của bé [Tên] trên lớp ạ."
+- Báo cáo điểm thi: "Dạ em chào mẹ ạ. Em xin phép trao đổi với mẹ về kết quả bài thi cuối khóa của bé [Tên] ạ."
+
+CÁC MẪU CÂU CHUẨN (cần đạt được style như những câu này):
+- "Trên lớp em quan sát thấy bé học ngoan và chăm chú nghe giảng ạ."
+- "Trong lớp bé học tập trung, thỉnh thoảng cuối buổi bé còn hay dễ bị xao nhãng ạ."
+- "Trên lớp bé khá hòa đồng với bạn bè ạ."
+- "Tuy nhiên bé còn chưa chủ động xung phong phát biểu bài, bé phải đợi thầy cô mời mới trả lời ạ."
+- "Khả năng nắm bài của bé khá tốt. Bé học và tiếp thu bài nhanh ạ."
+- "Phần ngữ pháp của bé khóa này chưa vững lắm. Bé cần chủ động luyện tập nhiều hơn ạ."
+- "Bên cạnh đó, kỹ năng [X] của bé còn hạn chế ạ. Bé cần luyện tập thêm để cải thiện ạ."
+- "Bài tập trong cuốn Reminder bé đã hoàn thành đầy đủ ạ."
+- "Bài tập trên hệ thống Smart Learning bé còn thiếu khá nhiều ạ."
+
+🔒 GIỮ NGUYÊN (không được đổi):
+- Mọi số điểm, % cụ thể
+- Tên các kỹ năng (Nghe, Đọc, Viết, Nói, Từ vựng, Ngữ pháp)
+- Mức đánh giá thực tế (KHÔNG nâng/hạ tier — "tốt" không thành "xuất sắc", "yếu" không thành "khá")
+- Tên ngữ pháp cụ thể nếu được nhắc (vd: "Thì Tương lai gần")
+- Cách xưng "em" (TA) - "mẹ" - "bé" hoặc "con"
+- "ạ" ở cuối câu — đây là dấu hiệu lễ phép QUAN TRỌNG, GIỮ ở 70-85% câu, KHÔNG cắt bỏ
+- CÂU KẾT về việc gọi điện trao đổi — giữ NGUYÊN VĂN, KHÔNG paraphrase
+
+🚫 KHÔNG được:
+- Thêm thông tin bịa về bé không có trong bản gốc
+- Đổi tier đánh giá sang cấp khác
+- Bộc lộ cảm xúc cá nhân của TA
+- Cắt "ạ" để cố "tự nhiên hơn" — đó là SAI, người Việt vẫn dùng "ạ" thường xuyên với PH
+
+CHỈ trả về tin nhắn đã viết lại. KHÔNG markdown, KHÔNG giải thích, KHÔNG tiêu đề.
+`;
+
+  if (mode === 'humanize') {
+    return `${shared}
+
+📝 PHONG CÁCH MODE HUMANIZE:
+Viết lại tin nhắn dưới đây theo voice anchor trên, đặc điểm:
+- Câu NGẮN GỌN, đi thẳng vào ý chính (đa số dưới 20 từ)
+- Tách câu dài thành 2-3 câu ngắn khi cần
+- Bỏ các từ thừa: "rất", "vô cùng", "đặc biệt", "hoàn toàn", "luôn luôn", "thực sự", "thường xuyên"
+- Gộp kỹ năng cùng tier thành 1 câu (vd: "Các kỹ năng Nghe, Đọc của bé đều ổn ạ.")
+- Đơn giản hóa cấu trúc câu nhưng VẪN giữ "ạ" ở 70-85% câu
+- KHÔNG được cắt "ạ" để "đỡ formal" — đó là hiểu sai
+
+Tin nhắn gốc:
+---
+${redacted}
+---`;
+  }
+
+  // mode === 'standard'
+  return `${shared}
+
+📝 PHONG CÁCH MODE STANDARD:
+Viết lại tin nhắn dưới đây theo voice anchor trên, đặc điểm:
+- Đa dạng cách diễn đạt: đảo cấu trúc, tách/gộp câu, thay synonym phù hợp
+- Có thể dùng câu dài hơn với vế phụ khi cần làm rõ ý
+- Giữ giọng văn lễ phép trang trọng, đầy đủ "ạ"
+- Tránh lặp pattern "Về [skill], con..." liên tiếp — đa dạng cách mở đầu các đoạn
+- KHÔNG được thêm cảm xúc cá nhân để "đa dạng hóa" — vẫn phải khách quan
+
+Tin nhắn gốc:
+---
+${redacted}
+---`;
+}
+
+async function runAIParaphrase(mode = 'standard') {
+  const apiKey = localStorage.getItem('gemini_api_key');
+  if (!apiKey) {
+    toggleSettings();
+    showToast('Cần nhập Gemini API key trong Cài đặt trước ạ.', 'warn');
+    return;
+  }
+
+  const fullName = document.getElementById('fullName').value.trim();
+  const nickName = document.getElementById('nickName').value.trim();
+
+  if (!nickName) {
+    showToast('Cần điền Tên thay thế trước khi dùng AI ạ.', 'warn');
+    return;
+  }
+
+  const currentText = document.getElementById('outputParent').textContent;
+  if (!currentText.trim()) {
+    showToast('Chưa có nội dung để viết lại. Tạo báo cáo trước ạ.', 'warn');
+    return;
+  }
+
+  // Step 1: redact
+  let redacted;
+  try {
+    redacted = redactForAPI(currentText, fullName, nickName);
+  } catch (err) {
+    showToast(err.message, 'error');
+    return;
+  }
+
+  // Step 2: assert full name is gone
+  if (fullName && redacted.toLowerCase().includes(fullName.toLowerCase())) {
+    showToast('Không thể bảo vệ tên bé. Kiểm tra lại Tên thay thế.', 'error');
+    return;
+  }
+
+  // Step 3: set loading state — chọn đúng button theo mode
+  const isHumanize = mode === 'humanize';
+  const aiBtn = document.getElementById(isHumanize ? 'aiBtnHumanize' : 'aiBtnStandard');
+  const otherBtn = document.getElementById(isHumanize ? 'aiBtnStandard' : 'aiBtnHumanize');
+  const origBtnHTML = aiBtn.innerHTML;
+  const origBtnClass = aiBtn.className;
+  aiBtn.disabled = true;
+  otherBtn.disabled = true;
+  const loadingLabel = isHumanize ? 'Đang humanize...' : 'Đang viết lại...';
+  aiBtn.innerHTML = `<span class="spinner"></span>${loadingLabel}`;
+  const loadingColor = isHumanize ? 'bg-purple-400' : 'bg-indigo-400';
+  aiBtn.className = `text-xs ${loadingColor} text-white px-4 py-1.5 rounded-full font-medium cursor-not-allowed`;
+
+  const prompt = buildAIPrompt(redacted, mode);
+
+  const selectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+
+  // Adjust config theo model: Pro không cho phép thinkingBudget=0
+  const generationConfig = {
+    temperature: 0.95,
+    topP: 0.95,
+    maxOutputTokens: 8192,
+  };
+  if (selectedModel.includes('flash')) {
+    // Flash & Flash-Lite: tắt thinking để output không bị cắt
+    generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  }
+  // Pro: để mặc định, thinking sẽ giúp output chất lượng hơn
+
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig,
+        }),
+      }
+    );
+
+    if (!resp.ok) {
+      const status = resp.status;
+      // Đọc error message thực từ Google API để debug
+      let apiMsg = '';
+      try {
+        const errData = await resp.json();
+        apiMsg = errData?.error?.message || '';
+      } catch (_) { /* ignore */ }
+      
+      if (status === 400 || status === 401 || status === 403) {
+        showToast('API key sai hoặc hết hạn. Kiểm tra trong Cài đặt.', 'error');
+        console.error('Gemini API error:', status, apiMsg);
+        return;
+      } else if (status === 429) {
+        // Auto-fallback: nếu đang dùng Pro mà bị 429 → tự retry với Flash
+        if (selectedModel === 'gemini-2.5-pro') {
+          showToast('⚠ Pro đang quá tải, đang thử lại với Flash...', 'warn');
+          aiBtn.innerHTML = '<span class="spinner"></span>Thử lại với Flash...';
+          
+          const flashResp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  ...generationConfig,
+                  thinkingConfig: { thinkingBudget: 0 },
+                },
+              }),
+            }
+          );
+          
+          if (flashResp.ok) {
+            const flashData = await flashResp.json();
+            const flashText = flashData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (flashText) {
+              const restored = fullName ? unredactFromAPI(flashText, fullName, nickName) : flashText;
+              const revertBtn = document.getElementById('revertBtn');
+              if (revertBtn.classList.contains('hidden')) {
+                originalParentText = currentText;
+              }
+              document.getElementById('outputParent').textContent = restored;
+              revertBtn.classList.remove('hidden');
+              document.getElementById('aiBanner').classList.remove('hidden');
+              const actionLabel = isHumanize ? 'humanize' : 'viết lại';
+              showToast(`✓ Đã ${actionLabel} bằng Flash (do Pro quá tải).`, 'ok');
+              return;
+            }
+          }
+          showToast('Cả Pro và Flash đều không phản hồi. Thử lại sau 1 phút.', 'error');
+        } else {
+          showToast('Đã vượt giới hạn miễn phí Gemini. Thử lại sau 1 phút.', 'warn');
+        }
+        console.error('Gemini API 429:', apiMsg);
+        return;
+      } else {
+        const shortMsg = apiMsg ? ` (${apiMsg.slice(0, 80)})` : '';
+        showToast(`Lỗi từ Gemini ${status}${shortMsg}`, 'error');
+        console.error('Gemini API error:', status, apiMsg);
+        return;
+      }
+    }
+
+    const data = await resp.json();
+    const candidate = data?.candidates?.[0];
+    const aiText = candidate?.content?.parts?.[0]?.text?.trim();
+    const finishReason = candidate?.finishReason;
+    
+    if (!aiText) {
+      if (finishReason === 'MAX_TOKENS') {
+        showToast('Output bị cắt do quá dài. Thử với báo cáo ngắn hơn.', 'warn');
+      } else if (finishReason === 'SAFETY') {
+        showToast('AI từ chối tạo nội dung. Vui lòng thử lại.', 'warn');
+      } else {
+        showToast('AI không trả về kết quả. Dùng bản gốc hoặc thử lại.', 'warn');
+      }
+      return;
+    }
+    
+    // Cảnh báo nếu output bị cắt giữa chừng dù có text
+    if (finishReason === 'MAX_TOKENS') {
+      showToast('⚠ Output có thể bị cắt cuối. Kiểm tra kỹ trước khi gửi.', 'warn');
+    }
+
+    // restore real name
+    const restored = fullName ? unredactFromAPI(aiText, fullName, nickName) : aiText;
+
+    // Save original text only on FIRST AI run (when revert btn is still hidden).
+    // Subsequent AI runs don't overwrite — luôn giữ bản gốc đầu tiên để revert về.
+    const revertBtn = document.getElementById('revertBtn');
+    if (revertBtn.classList.contains('hidden')) {
+      originalParentText = currentText;
+    }
+
+    document.getElementById('outputParent').textContent = restored;
+    revertBtn.classList.remove('hidden');
+    document.getElementById('aiBanner').classList.remove('hidden');
+
+  } catch (_) {
+    showToast('Không kết nối được. Kiểm tra mạng và thử lại.', 'error');
+  } finally {
+    aiBtn.disabled = false;
+    otherBtn.disabled = false;
+    aiBtn.innerHTML = origBtnHTML;
+    aiBtn.className = origBtnClass;
+  }
+}
+
+// ─── REVERT AI ───────────────────────────────────────────────────────────────
+function revertAI() {
+  document.getElementById('outputParent').textContent = originalParentText;
+  document.getElementById('revertBtn').classList.add('hidden');
+  document.getElementById('aiBanner').classList.add('hidden');
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+buildSkillRows();
+buildCategoryGroups();
+
+const savedTs = localStorage.getItem('ta_timeSlot');
+const savedDt = localStorage.getItem('ta_callDate');
+if (savedTs) document.getElementById('timeSlot').value = savedTs;
+if (savedDt) document.getElementById('callDate').value = savedDt;
+
+// ─── WELCOME MODAL ───────────────────────────────────────────────────────────
+function closeWelcomeModal() {
+  const dontShow = document.getElementById('dontShowWelcome').checked;
+  if (dontShow) {
+    localStorage.setItem('welcome_dismissed', '1');
+  }
+  document.getElementById('welcomeModal').classList.add('hidden');
+}
+
+// Show welcome modal on load unless previously dismissed
+if (!localStorage.getItem('welcome_dismissed')) {
+  document.getElementById('welcomeModal').classList.remove('hidden');
+}
+
+// ─── AI GUIDE TOGGLE ─────────────────────────────────────────────────────────
+function toggleAiGuide() {
+  const content = document.getElementById('aiGuideContent');
+  const chevron = document.getElementById('aiGuideChevron');
+  const isHidden = content.classList.contains('hidden');
+  content.classList.toggle('hidden', !isHidden);
+  chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+</script>
+</body>
+</html>
