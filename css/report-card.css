@@ -1,0 +1,216 @@
+body { font-family: 'Inter', -apple-system, sans-serif; }
+
+.btn-mode { transition: all 0.15s ease; }
+.tier-badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 9999px; font-weight: 600; }
+.opt-btn { transition: background 0.12s, color 0.12s, border-color 0.12s; }
+#toastContainer { pointer-events: none; }
+.toast { pointer-events: auto; animation: slideIn 0.2s ease; }
+@keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.spinner { display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── LANDING PAGE ── */
+#mainArea { scroll-behavior: smooth; scrollbar-gutter: stable; }
+#landingView { height: 100vh; overflow-y: auto; scroll-behavior: smooth; background: #f6f5f4; }
+
+.hero-accent { color: #0075de; }
+.hero-cta { display: inline-flex; align-items: center; gap: 8px; background: #0075de; color: #fff; font-size: 15px; font-weight: 600; padding: 12px 26px; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,.08); transition: background .15s ease, transform .1s ease; cursor: pointer; }
+.hero-cta:hover { background: #005bab; }
+.hero-cta:active { transform: scale(.97); }
+.hero-cta svg { width: 18px; height: 18px; }
+
+/* Hero (section 1) */
+.lp-hero { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #e6e6e6; }
+.lp-grid { position: absolute; inset: 0; background-image: linear-gradient(#e6e6e6 1px, transparent 1px), linear-gradient(to right, #e6e6e6 1px, transparent 1px); background-size: 3rem 3rem; opacity: .5; }
+.lp-dotfield { position: absolute; inset: 0; overflow: hidden; }
+.lp-fade { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 38%, transparent 0%, #f6f5f4 70%); }
+.lp-hero-inner { position: relative; z-index: 1; max-width: 720px; padding: 40px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.lp-badge { display: inline-block; background: #fff; border: 1px solid #e6e6e6; color: #615d59; font-size: 12px; font-weight: 600; letter-spacing: .02em; padding: 5px 14px; border-radius: 9999px; margin-bottom: 22px; }
+.lp-title { font-size: 56px; line-height: 1.05; font-weight: 700; letter-spacing: -1.5px; color: #1f1e1d; }
+.lp-desc { margin-top: 18px; font-size: 17px; line-height: 1.6; color: #615d59; max-width: 52ch; }
+.lp-hero .hero-cta { margin-top: 30px; }
+
+.lp-scroll-hint { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 1; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #e6e6e6; border-radius: 9999px; background: #fff; color: #615d59; cursor: pointer; animation: lpBounce 1.8s ease-in-out infinite; }
+.lp-scroll-hint svg { width: 20px; height: 20px; }
+@keyframes lpBounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+/* Mode picker (section 2) */
+.lp-modes { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 64px 24px; }
+.lp-modes-inner { max-width: 820px; width: 100%; text-align: center; }
+.lp-modes-title { font-size: 34px; font-weight: 700; letter-spacing: -1px; color: #1f1e1d; }
+.lp-modes-sub { margin-top: 12px; font-size: 16px; color: #615d59; }
+.lp-mode-grid { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.lp-mode-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 6px; background: #fff; border: 1px solid #e6e6e6; border-radius: 14px; padding: 22px; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.lp-mode-card:hover { border-color: #a9cef5; box-shadow: 0 12px 30px -16px rgba(0,0,0,.25); transform: translateY(-3px); }
+.lp-mode-ico { width: 42px; height: 42px; border-radius: 10px; background: #eaf3fc; color: #0075de; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+.lp-mode-ico svg { width: 22px; height: 22px; }
+.lp-mode-name { font-size: 17px; font-weight: 600; color: #1f1e1d; }
+.lp-mode-desc { font-size: 13.5px; line-height: 1.5; color: #615d59; }
+.lp-mode-go { margin-top: 8px; font-size: 13px; font-weight: 600; color: #0075de; opacity: 0; transform: translateX(-4px); transition: opacity .15s ease, transform .15s ease; }
+.lp-mode-card:hover .lp-mode-go { opacity: 1; transform: translateX(0); }
+
+/* Sparkles (vanilla port of MagicUI SparklesText) */
+.sparkles-wrap { position: relative; display: inline-block; }
+.sparkles-wrap > strong { position: relative; z-index: 1; font-weight: 700; }
+.sparkle { position: absolute; pointer-events: none; z-index: 2; transform-origin: center; opacity: 0; animation: sparkleTwinkle .8s linear infinite; }
+@keyframes sparkleTwinkle {
+  0% { opacity: 0; transform: scale(0) rotate(75deg); }
+  50% { opacity: 1; transform: scale(var(--s, 1)) rotate(120deg); }
+  100% { opacity: 0; transform: scale(0) rotate(150deg); }
+}
+
+/* Entrance */
+@keyframes heroUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.lp-badge, .lp-title, .lp-desc, .lp-hero .hero-cta { opacity: 0; animation: heroUp .55s ease forwards; }
+.lp-title { animation-delay: .08s; }
+.lp-desc { animation-delay: .18s; }
+.lp-hero .hero-cta { animation-delay: .28s; }
+
+@media (max-width: 768px) {
+  .lp-title { font-size: 38px; letter-spacing: -1px; }
+  .lp-desc { font-size: 15px; }
+  .lp-modes-title { font-size: 26px; }
+  .lp-mode-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-badge, .lp-title, .lp-desc, .hero-cta { animation: none; opacity: 1; }
+  .lp-scroll-hint { animation: none; }
+}
+
+/* ── DECORATIVE STICKERS (lấp khoảng trống 2 bên trong app view) ──
+   Lớp phủ cố định, nằm DƯỚI nội dung; chỉ hiện ở màn rộng có gutter.
+   Vị trí ngang neo theo tâm cột nội dung (cột lệch phải nửa bề rộng sidebar). */
+.deco-layer { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; transform: translateY(10px); --sb-half: 110px; }
+/* Sidebar thu gọn → cột nội dung dịch trái; sticker bám theo (đổi nửa-bề-rộng sidebar) */
+#appShell:has(#sidebar.collapsed) .deco-layer { --sb-half: 24px; }
+.deco-sticker {
+  position: absolute; width: var(--w, 120px); height: auto; opacity: .82;
+  pointer-events: none; user-select: none; -webkit-user-drag: none;
+  transform: rotate(var(--rot, 0deg));
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.07));
+  animation: decoFloat 7s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+/* Vị trí ngang neo theo mép cột nội dung; --off đặt riêng từng sticker.
+   Phần (110px - var(--sb-half)) bù khi sidebar thu gọn để sticker dịch theo cột. */
+.deco-left  { right: calc(50% + var(--off, 300px) + 110px - var(--sb-half)); transition: right .2s ease-in-out; }
+.deco-right { left:  calc(50% + var(--off, 500px) + var(--sb-half) - 110px); transition: left  .2s ease-in-out; }
+
+@keyframes decoFloat {
+  0%, 100% { transform: rotate(var(--rot, 0deg)) translateY(0); }
+  50%      { transform: rotate(var(--rot, 0deg)) translateY(-8px); }
+}
+
+/* Ẩn khi không đủ chỗ ở gutter (sidebar + cột nội dung đã chiếm gần hết) */
+@media (max-width: 1279px) { .deco-layer { display: none; } }
+@media (prefers-reduced-motion: reduce) { .deco-sticker { animation: none; } .deco-left, .deco-right { transition: none; } }
+
+/* ── MODE 4: hướng dẫn lấy điểm ── */
+.m4-guide kbd { display: inline-block; padding: 1px 6px; border: 1px solid #d4d2cf; border-bottom-width: 2px; border-radius: 5px; background: #fff; font-size: 11px; font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; color: #31302e; line-height: 1.4; white-space: nowrap; }
+
+/* ── REPORT CARD ── */
+#m4ReportCard { width: 794px; margin: 0 auto; background: #fff; padding: 40px 44px; font-family: Arial, sans-serif; color: #000; font-size: 13px; line-height: 1.35; }
+#m4ReportCard .hdr { display: flex; gap: 28px; align-items: flex-start; }
+#m4ReportCard .hdr-left { flex: 0 0 180px; }
+#m4ReportCard .hdr-left img { width: 124px; height: auto; display: block; margin-bottom: 16px; }
+#m4ReportCard .form-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
+#m4ReportCard .hdr-right { flex: 1; padding-top: 4px; }
+#m4ReportCard .info-row { display: flex; align-items: center; margin-bottom: 7px; }
+#m4ReportCard .info-row:last-child { margin-bottom: 0; }
+#m4ReportCard .info-label { font-weight: 700; font-size: 12.5px; text-align: right; padding-right: 10px; flex: 0 0 76px; }
+#m4ReportCard .info-box { border: 1.5px solid #000; padding: 5px 10px; font-size: 12.5px; flex: 1; min-height: 28px; display: flex; align-items: center; }
+#m4ReportCard .info-box.sm { flex: 0 0 110px; }
+#m4ReportCard .info-gap { flex: 0 0 14px; }
+#m4ReportCard .divider { border: none; border-top: 1.5px solid #000; margin: 16px 0 12px; }
+#m4ReportCard .sec-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+#m4ReportCard .sec-title .vi { font-weight: 400; font-size: 12.5px; }
+#m4ReportCard .sd-row { display: flex; align-items: stretch; margin-bottom: 12px; }
+#m4ReportCard .sd-row:last-child { margin-bottom: 0; }
+#m4ReportCard .sd-label { flex: 0 0 150px; text-align: right; padding: 6px 12px 0 0; font-size: 12.5px; line-height: 1.25; }
+#m4ReportCard .sd-label .en { font-weight: 700; }
+#m4ReportCard .sd-label .vi { font-size: 11.5px; }
+#m4ReportCard .sd-value { flex: 1; border: 1.5px solid #000; background: #d9d9d9; padding: 9px 14px; font-size: 15px; font-weight: 700; display: flex; align-items: center; }
+#m4ReportCard .sr-grid { display: flex; justify-content: center; gap: 44px; flex-wrap: wrap; }
+#m4ReportCard .sr-box { text-align: center; }
+#m4ReportCard .sr-box .lbl { font-size: 13px; font-weight: 700; margin-bottom: 8px; line-height: 1.25; }
+#m4ReportCard .sr-box .lbl .vi { font-weight: 400; font-size: 11.5px; }
+#m4ReportCard .sr-val-row { display: flex; align-items: center; justify-content: center; gap: 7px; }
+#m4ReportCard .sr-val { border: 1.5px solid #000; background: #d9d9d9; font-size: 15px; font-weight: 700; flex: 0 0 68px; box-sizing: border-box; padding: 8px 0; text-align: center; }
+#m4ReportCard .sr-denom { font-size: 13px; }
+#m4ReportCard .eoc-wrap { display: flex; gap: 18px; align-items: stretch; }
+#m4ReportCard .eoc-skills { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; align-content: center; }
+#m4ReportCard .eoc-skill { display: flex; align-items: center; gap: 9px; }
+#m4ReportCard .eoc-lbl { flex: 1; text-align: right; line-height: 1.2; }
+#m4ReportCard .eoc-lbl .en { font-weight: 700; font-size: 12.5px; }
+#m4ReportCard .eoc-lbl .vi { font-size: 11px; }
+#m4ReportCard .eoc-lbl-quad .en { font-size: 11px; white-space: nowrap; }
+#m4ReportCard .eoc-lbl-quad .vi { white-space: nowrap; }
+#m4ReportCard .eoc-val { border: 1.5px solid #000; background: #d9d9d9; font-size: 15px; font-weight: 700; flex: 0 0 68px; box-sizing: border-box; padding: 8px 0; text-align: center; }
+#m4ReportCard .eoc-denom { font-size: 12px; flex: 0 0 30px; }
+#m4ReportCard .total-box { flex: 0 0 200px; background: #000; color: #fff; padding: 16px; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+#m4ReportCard .total-box .lbl { font-size: 15px; font-weight: 700; line-height: 1.25; }
+#m4ReportCard .total-box .lbl .vi { font-weight: 400; font-size: 12px; }
+#m4ReportCard .total-box .val-line { background: #fff; margin-top: 12px; padding: 10px 0; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+#m4ReportCard .total-box .val { color: #d11; font-size: 26px; font-weight: 700; }
+#m4ReportCard .total-box .denom { color: #d11; font-size: 14px; }
+#m4ReportCard .cmt-wrap { display: grid; grid-template-columns: 1fr 210px; gap: 20px; align-items: start; }
+#m4ReportCard .cmt-box { border: 1.5px solid #000; padding: 14px 16px; font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; min-height: 280px; }
+#m4ReportCard .cmt-box strong { font-weight: 700; }
+#m4ReportCard .award { text-align: center; }
+#m4ReportCard .award .a-title { font-size: 15px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+#m4ReportCard .award .a-title .vi { font-weight: 400; font-size: 12px; }
+#m4ReportCard .award img { width: 160px; height: 160px; object-fit: contain; display: block; margin: 6px auto; }
+#m4ReportCard .sig { font-weight: 700; font-size: 13.5px; margin-top: 8px; line-height: 1.3; }
+#m4ReportCard .sig .vi { font-weight: 400; font-size: 12px; }
+#m4ReportCard .ftr { text-align: center; font-size: 12px; color: #555; font-style: italic; margin-top: 22px; padding-top: 10px; border-top: 1.5px solid #000; }
+
+.m4-s-card { cursor: pointer; transition: all 0.15s; }
+.m4-s-card:hover { border-color: #a9cef5 !important; }
+.m4-s-card.selected { border-color: #0075de !important; background: #eaf3fc !important; box-shadow: 0 0 0 2px #d4e7fa; }
+
+/* ── SIDEBAR (Notion-inspired: white surface, hairline, single blue accent) ── */
+#sidebar {
+  width: 220px; min-width: 220px; background: #ffffff;
+  border-right: 1px solid #e6e6e6; display: flex;
+  flex-direction: column; transition: width .2s ease-in-out; overflow: hidden;
+  padding: 12px 8px;
+}
+#sidebar.collapsed { width: 48px; min-width: 48px; }
+#sidebar .sb-label, #sidebar .sb-app-name, #sidebar .sb-app-sub { white-space: nowrap; overflow: hidden; }
+#sidebar.collapsed .sb-label,
+#sidebar.collapsed .sb-logo-text { display: none; }
+
+.sb-logo { display: flex; align-items: center; gap: 10px; padding: 4px 6px 14px; }
+.sb-logo-icon { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 7px; background: #eaf3fc; color: #0075de; display: flex; align-items: center; justify-content: center; }
+.sb-logo-icon svg { width: 18px; height: 18px; }
+.sb-app-name { font-size: 14px; font-weight: 600; color: #31302e; line-height: 1.2; }
+.sb-app-sub { font-size: 11px; color: #a39e98; }
+
+/* Collapse toggle (icon-only, sits at the end of the logo row — Notion style) */
+.sb-collapse { margin-left: auto; flex: 0 0 26px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 6px; background: transparent; color: #a39e98; cursor: pointer; transition: background .12s, color .12s; }
+.sb-collapse:hover { background: #efedeb; color: #615d59; }
+.sb-collapse svg { width: 18px; height: 18px; }
+.sb-chevron { transition: transform .2s ease; }
+#sidebar.collapsed .sb-chevron { transform: rotate(180deg); }
+
+.sb-nav { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+.sb-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: none; border-radius: 6px; background: transparent; color: #31302e; font-size: 13.5px; font-weight: 500; cursor: pointer; text-align: left; transition: background .12s, color .12s; }
+.sb-item:hover { background: #efedeb; }
+.sb-item.active { background: #eaf3fc; color: #0075de; font-weight: 600; }
+.sb-item.active::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: #0075de; }
+.sb-ico { flex: 0 0 20px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #615d59; transition: color .12s; }
+.sb-ico svg { width: 18px; height: 18px; }
+.sb-item.active .sb-ico { color: #0075de; }
+
+.sb-foot { border-top: 1px solid #e6e6e6; padding-top: 8px; margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
+.sb-user { display: flex; align-items: center; gap: 8px; padding: 2px 6px; }
+.sb-avatar { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; background: #0075de; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.sb-user .sb-label { font-size: 13px; color: #31302e; font-weight: 500; }
+
+/* ── Collapsed state: center everything, hide labels & branding text ── */
+#sidebar.collapsed .sb-logo { padding: 4px 0 14px; justify-content: center; }
+#sidebar.collapsed .sb-logo-icon { display: none; }
+#sidebar.collapsed .sb-collapse { margin-left: 0; }
+#sidebar.collapsed .sb-item { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
+#sidebar.collapsed .sb-item.active::before { left: 0; }
+#sidebar.collapsed .sb-user { justify-content: center; padding: 2px 0; }

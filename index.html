@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TA Report Helper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Notion-inspired system: warm paper canvas, white cards, single blue accent.
+    // indigo → Notion blue (the one structural accent); slate → warm-neutral ink scale.
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'] },
+          colors: {
+            indigo: {
+              50: '#eaf3fc', 100: '#d4e7fa', 200: '#a9cef5', 300: '#6faae8', 400: '#3a91e3',
+              500: '#0075de', 600: '#0075de', 700: '#005bab', 800: '#004886', 900: '#013564',
+            },
+            slate: {
+              50: '#f6f5f4', 100: '#efedeb', 200: '#e6e6e6', 300: '#d4d2cf', 400: '#a39e98',
+              500: '#615d59', 600: '#4a4742', 700: '#31302e', 800: '#1f1e1d', 900: '#000000',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="css/report-card.css" />
+</head>
+
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+  <!-- ══════════════════════════════════════════════════════ LANDING PAGE -->
+  <div id="landingView">
+
+    <!-- Section 1: Hero -->
+    <section class="lp-hero">
+      <div class="lp-dotfield" id="heroDots"></div>
+      <div class="lp-fade"></div>
+      <div class="lp-hero-inner">
+        <div class="lp-badge">Teaching Assistant · Report Helper</div>
+        <h1 class="lp-title"><span class="sparkles-wrap" id="sparkTitle"><strong>Công cụ hỗ trợ&nbsp;<span
+                class="hero-accent">TA</span></strong></span></h1>
+        <p class="lp-desc">Phần mềm hỗ trợ các bạn trợ giảng soạn tin nhắn báo cáo tình hình học tập, làm bảng điểm BTVN
+          và bảng điểm thi chỉ trong vài phút.</p>
+        <button class="hero-cta" onclick="scrollToModes()">
+          Bắt đầu
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <polyline points="19 12 12 19 5 12" />
+          </svg>
+        </button>
+      </div>
+      <button class="lp-scroll-hint" onclick="scrollToModes()" aria-label="Cuộn xuống">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- Section 2: Mode picker -->
+    <section class="lp-modes" id="modePicker">
+      <div class="lp-modes-inner">
+        <h2 class="lp-modes-title">Bạn muốn soạn loại báo cáo nào?</h2>
+        <p class="lp-modes-sub">Chọn một loại để bắt đầu — bạn có thể đổi qua lại bất cứ lúc nào trong ứng dụng.</p>
+        <div class="lp-mode-grid">
+          <button class="lp-mode-card" onclick="openApp(1)">
+            <span class="lp-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg></span>
+            <span class="lp-mode-name">Báo cáo điểm thi</span>
+            <span class="lp-mode-desc">Soạn tin nhắn báo cáo điểm thi cuối khóa gửi phụ huynh.</span>
+            <span class="lp-mode-go">Bắt đầu →</span>
+          </button>
+          <button class="lp-mode-card" onclick="openApp(2)">
+            <span class="lp-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg></span>
+            <span class="lp-mode-name">Báo cáo tháng</span>
+            <span class="lp-mode-desc">Soạn tin nhắn báo cáo tình hình học tập trong tháng.</span>
+            <span class="lp-mode-go">Bắt đầu →</span>
+          </button>
+          <button class="lp-mode-card" onclick="openApp(3)">
+            <span class="lp-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                <path d="m9 14 2 2 4-4" />
+              </svg></span>
+            <span class="lp-mode-name">Báo cáo điểm BTVN</span>
+            <span class="lp-mode-desc">Tạo bảng tổng hợp tiến độ bài tập về nhà của bé.</span>
+            <span class="lp-mode-go">Bắt đầu →</span>
+          </button>
+          <button class="lp-mode-card" onclick="openApp(4)">
+            <span class="lp-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="6" />
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+              </svg></span>
+            <span class="lp-mode-name">Bảng điểm cuối khóa</span>
+            <span class="lp-mode-desc">Tạo phiếu điểm cuối khóa (ILA score report) cho cả lớp.</span>
+            <span class="lp-mode-go">Bắt đầu →</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="appShell" style="display:none;height:100vh;overflow:hidden">
+
+    <!-- ══════════════════════════════════════════════════════ DECORATIVE STICKERS (gutter, chỉ trang trí) -->
+    <div class="deco-layer" aria-hidden="true">
+      <!-- Trái (vị trí ngang xen kẽ gần-nội-dung / gần-sidebar cho rải tự nhiên) -->
+      <img class="deco-sticker deco-left" src="assets/stickers/great-job.png" alt="" draggable="false" loading="lazy"
+        style="top:96px;  --off:335px; --w:62px; --rot:-7deg; --delay:0s;">
+      <img class="deco-sticker deco-left" src="assets/stickers/note-book.png" alt="" draggable="false" loading="lazy"
+        style="top:208px; --off:250px; --w:65px; --rot:6deg;  --delay:1.2s;">
+      <img class="deco-sticker deco-left" src="assets/stickers/thumb-up.png" alt="" draggable="false" loading="lazy"
+        style="top:332px; --off:320px; --w:58px; --rot:5deg;  --delay:1.4s;">
+      <img class="deco-sticker deco-left" src="assets/stickers/badge.png" alt="" draggable="false" loading="lazy"
+        style="top:470px; --off:258px; --w:65px; --rot:-5deg; --delay:.4s;">
+      <img class="deco-sticker deco-left" src="assets/stickers/well-done.png" alt="" draggable="false" loading="lazy"
+        style="top:612px; --off:330px; --w:60px; --rot:-4deg; --delay:.7s;">
+      <img class="deco-sticker deco-left" src="assets/stickers/spell-book.png" alt="" draggable="false" loading="lazy"
+        style="top:760px; --off:278px; --w:63px; --rot:7deg;  --delay:1.9s;">
+      <!-- Phải -->
+      <img class="deco-sticker deco-right" src="assets/stickers/awesome.png" alt="" draggable="false" loading="lazy"
+        style="top:130px; --off:472px; --w:60px; --rot:6deg;  --delay:.5s;">
+      <img class="deco-sticker deco-right" src="assets/stickers/note-book2.png" alt="" draggable="false" loading="lazy"
+        style="top:252px; --off:552px; --w:65px; --rot:-6deg; --delay:1.8s;">
+      <img class="deco-sticker deco-right" src="assets/stickers/proud.png" alt="" draggable="false" loading="lazy"
+        style="top:384px; --off:468px; --w:62px; --rot:5deg;  --delay:.9s;">
+      <img class="deco-sticker deco-right" src="assets/stickers/emoticon.png" alt="" draggable="false" loading="lazy"
+        style="top:520px; --off:540px; --w:63px; --rot:-4deg; --delay:1.3s;">
+      <img class="deco-sticker deco-right" src="assets/stickers/great-job2.png" alt="" draggable="false" loading="lazy"
+        style="top:666px; --off:478px; --w:58px; --rot:4deg;  --delay:1.1s;">
+      <img class="deco-sticker deco-right" src="assets/stickers/praise.png" alt="" draggable="false" loading="lazy"
+        style="top:800px; --off:545px; --w:60px; --rot:-6deg; --delay:1.6s;">
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ SIDEBAR -->
+    <nav id="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-icon" onclick="goHome()" title="Về trang chủ" role="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          </svg>
+        </div>
+        <div class="sb-logo-text" onclick="goHome()" title="Về trang chủ" role="button" style="cursor:pointer">
+          <div class="sb-app-name">TA Report Helper</div>
+          <div class="sb-app-sub">ILA Vietnam</div>
+        </div>
+        <button id="collapseBtn" class="sb-collapse" title="Thu gọn / mở rộng" aria-label="Thu gọn / mở rộng">
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m11 17-5-5 5-5" />
+            <path d="m18 17-5-5 5-5" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="sb-nav">
+        <button id="btnMode1" onclick="setMode(1)" class="sb-item" title="Báo cáo điểm thi">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg></span><span class="sb-label">Báo cáo điểm thi</span>
+        </button>
+        <button id="btnMode2" onclick="setMode(2)" class="sb-item" title="Báo cáo tháng">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg></span><span class="sb-label">Báo cáo tháng</span>
+        </button>
+        <button id="btnMode3" onclick="setMode(3)" class="sb-item" title="Báo cáo điểm BTVN">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+              <path d="m9 14 2 2 4-4" />
+            </svg></span><span class="sb-label">Báo cáo điểm BTVN</span>
+        </button>
+        <button id="btnMode4" onclick="setMode(4)" class="sb-item" title="Bảng điểm cuối khóa">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="6" />
+              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+            </svg></span><span class="sb-label">Bảng điểm cuối khóa</span>
+        </button>
+      </div>
+
+      <div class="sb-foot">
+        <div class="sb-user"><span class="sb-avatar">TA</span><span class="sb-label">TA</span></div>
+      </div>
+    </nav>
+
+    <div id="mainArea" style="flex:1;overflow-y:auto">
+
+      <!-- ══════════════════════════════════════════════════════ TOAST CONTAINER -->
+      <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 items-center">
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════ DISCLAIMER MODAL -->
+      <div id="disclaimerModal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+          <h2 class="text-base font-bold text-slate-800">⚠️ LƯU Ý QUAN TRỌNG TRƯỚC KHI DÙNG TÍNH NĂNG AI</h2>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2 text-sm text-slate-700">
+            <p class="font-semibold text-amber-800">🔒 Quyền riêng tư:</p>
+            <ul class="space-y-1 list-none pl-1">
+              <li>• Nội dung sẽ được gửi đến Google để viết lại</li>
+              <li>• Tên thật của bé được <strong>ẨN TỰ ĐỘNG</strong> (chỉ gửi tên thay thế như "Kelvin")</li>
+              <li class="font-semibold text-red-700 mt-2">• TUYỆT ĐỐI KHÔNG nhập các thông tin sau vào bất kỳ ô nào:
+              </li>
+              <li class="pl-3">– Số điện thoại của PH hoặc bé</li>
+              <li class="pl-3">– Địa chỉ nhà, tên trường, lớp cụ thể</li>
+              <li class="pl-3">– Số CCCD, số tài khoản, hoặc thông tin định danh khác</li>
+              <li class="pl-3">– Tên đầy đủ của PH (chỉ gọi "mẹ" / "ba" là đủ)</li>
+            </ul>
+          </div>
+
+          <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-2 text-sm text-slate-700">
+            <p class="font-semibold text-indigo-700">✅ Trách nhiệm của TA:</p>
+            <p>Đây <strong>CHỈ</strong> là công cụ <strong>HỖ TRỢ</strong>. AI có thể:</p>
+            <ul class="space-y-1 list-none pl-1">
+              <li>• Hiểu sai ý của bạn và viết lệch sự thật về bé</li>
+              <li>• Thêm/bớt chi tiết khiến PH hiểu nhầm</li>
+              <li>• Dùng từ không đúng văn phong trung tâm của bạn</li>
+            </ul>
+            <p class="font-semibold mt-1">Bạn BẮT BUỘC phải:</p>
+            <ul class="space-y-1 list-none pl-1">
+              <li>✓ Đọc kỹ toàn bộ output trước khi gửi PH</li>
+              <li>✓ So sánh với thông tin gốc về bé</li>
+              <li>✓ Sửa lại nếu thấy chi tiết nào sai/không phù hợp</li>
+              <li>✓ Chịu trách nhiệm cuối cùng về nội dung gửi đi</li>
+            </ul>
+          </div>
+
+          <label class="flex items-start gap-2 cursor-pointer text-sm text-slate-700">
+            <input type="checkbox" id="disclaimerCheck" class="mt-0.5 accent-indigo-600" />
+            <span>Tôi đã đọc và đồng ý với các lưu ý trên</span>
+          </label>
+
+          <div class="flex gap-3 pt-1">
+            <button onclick="acceptDisclaimer()"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+              Đồng ý và tiếp tục
+            </button>
+            <button onclick="closeDisclaimer()"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-sm transition-colors">
+              Hủy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════ SETTINGS PANEL -->
+      <div id="settingsPanel" class="hidden fixed inset-0 z-40 bg-black/50 flex items-start justify-end p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mt-14 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-bold text-slate-800 text-sm">⚙️ Cài đặt</h2>
+            <button onclick="toggleSettings()"
+              class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Gemini API Key</label>
+            <input id="apiKeyInput" type="password" placeholder="AIza..."
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono" />
+            <p class="text-xs text-slate-500">
+              Lấy key miễn phí tại
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
+                class="text-indigo-500 underline">aistudio.google.com/app/apikey</a>
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Model AI</label>
+            <select id="modelSelect"
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="gemini-2.5-flash">⚡ Flash — Ổn định, 250 req/ngày (khuyến nghị)</option>
+              <option value="gemini-2.5-flash-lite">🚀 Flash Lite — Cực nhanh, 1000 req/ngày</option>
+              <option value="gemini-2.5-pro">🎯 Pro — Chất lượng cao nhất (hay bị 429)</option>
+            </select>
+            <p class="text-xs text-slate-500">
+              💡 <strong>Flash</strong> là lựa chọn cân bằng nhất. <strong>Pro</strong> chất lượng cao hơn nhưng giới
+              hạn chặt (5 RPM, 100 RPD) và hay bị từ chối do Google ưu tiên paid users.
+            </p>
+          </div>
+          <button onclick="saveApiKey()"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+            Lưu key
+          </button>
+          <div id="keyStatus" class="text-xs text-center font-medium"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════ HEADER -->
+      <header class="bg-slate-50/90 backdrop-blur border-b border-slate-200 py-3.5 sticky top-0 z-30">
+        <div class="max-w-2xl mx-auto px-6 flex items-center justify-between">
+          <div>
+            <h1 class="text-lg font-bold tracking-tight text-slate-800">TA Report Helper</h1>
+            <p class="text-slate-500 text-sm mt-0.5">Phần mềm hỗ trợ các bạn trợ giảng báo cáo tình hình học tập của học
+              sinh, làm bảng điểm BTVN và bảng điểm thi.
+            </p>
+          </div>
+          <button onclick="toggleSettings()" title="Cài đặt"
+            class="ml-4 shrink-0 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg w-9 h-9 flex items-center justify-center text-base transition-colors">
+            ⚙️
+          </button>
+        </div>
+      </header>
+
+      <!-- WELCOME MODAL (hiện khi mở trang lần đầu) -->
+      <div id="welcomeModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="text-3xl">👋</div>
+            <h2 class="text-xl font-bold text-slate-800">Chào bạn, đọc kỹ trước khi dùng nhé!</h2>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+            <p class="font-semibold text-amber-900 text-sm">⚠️ Đây là công cụ HỖ TRỢ — không thể thay thế cho TA</p>
+            <p class="text-sm text-slate-700 leading-relaxed">
+              Phần mềm này giúp bạn soạn nhanh khung báo cáo, nhưng <strong>không nên gửi nguyên văn</strong> cho phụ
+              huynh.
+            </p>
+          </div>
+
+          <div class="space-y-3 text-sm text-slate-700">
+            <p class="font-semibold text-slate-800">✅ Trách nhiệm của TA:</p>
+            <ul class="space-y-2 pl-1">
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Đọc kỹ</strong> toàn
+                  bộ báo cáo trước khi gửi PH.</span></li>
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Cá nhân hóa</strong>
+                  bằng cách thêm các quan sát thực tế về bé, tránh sử dụng toàn bộ văn bản rập khuôn.</span></li>
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Sửa lại</strong>
+                  những chỗ không đúng với tình hình thực tế của bé.</span></li>
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Chịu trách
+                    nhiệm</strong> cuối cùng về nội dung gửi PH.</span></li>
+            </ul>
+          </div>
+
+          <div class="space-y-3 text-sm text-slate-700">
+            <p class="font-semibold text-slate-800">❌ Tránh:</p>
+            <ul class="space-y-2 pl-1">
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Copy-paste nguyên văn mà không
+                  đọc lại.</span></li>
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Nhập SĐT, địa chỉ, hay thông tin
+                  nhạy cảm vào ô ghi chú.</span></li>
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Báo cáo sơ sài khiến PH hiểu
+                  nhầm tình hình của bé.</span></li>
+            </ul>
+          </div>
+
+          <p class="text-xs text-slate-500 italic border-t pt-3">
+            Mục tiêu là tiết kiệm thời gian gõ máy để bạn có thể tập trung vào quan sát và chăm sóc bé tốt hơn ạ. 💙
+          </p>
+
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+            <input type="checkbox" id="dontShowWelcome" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-400" />
+            Không hiện lại lần sau
+          </label>
+
+          <button onclick="closeWelcomeModal()"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
+            Tôi đã hiểu, bắt đầu thôi!
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════ MODE 3: CALENDAR MODAL -->
+      <div id="calendarModal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 space-y-4">
+          <h2 class="font-bold text-slate-800 text-base">📅 Chọn các ngày có bài tập</h2>
+          <div class="flex items-center justify-between">
+            <button type="button" onclick="calNavMonth(-1)"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors">◀</button>
+            <span id="calMonthLabel" class="font-semibold text-slate-700 text-sm"></span>
+            <button type="button" onclick="calNavMonth(1)"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors">▶</button>
+          </div>
+          <div id="calGrid" class="grid grid-cols-7 gap-1 text-center"></div>
+          <p id="calCounter" class="text-xs text-slate-500 text-center"></p>
+          <div class="flex gap-3 pt-1">
+            <button type="button" onclick="closeCalendarPicker()"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-sm transition-colors">
+              Hủy
+            </button>
+            <button type="button" id="calApplyBtn" onclick="applyCalendarDates()"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+              ✅ Áp dụng
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <main id="toolMain" class="max-w-2xl mx-auto px-6 py-6 space-y-6">
+
+        <!-- AI GUIDE SECTION (hướng dẫn lấy API key + chọn model) -->
+        <section class="bg-indigo-50 rounded-2xl border border-indigo-100 p-5 space-y-3">
+          <button onclick="toggleAiGuide()" class="w-full flex items-center justify-between text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">✨</span>
+              <h2 class="font-semibold text-slate-800 text-sm">Hướng dẫn dùng tính năng AI (tùy chọn)</h2>
+            </div>
+            <span id="aiGuideChevron" class="text-slate-400 transition-transform">▼</span>
+          </button>
+
+          <div id="aiGuideContent" class="hidden space-y-4 pt-2">
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Sau khi tạo báo cáo, bạn có thể bấm <strong>"✨ Viết lại bằng AI"</strong> để báo cáo tự nhiên và đa dạng
+              hơn. Tính năng này dùng Google Gemini miễn phí.
+            </p>
+
+            <div class="bg-white rounded-lg p-4 space-y-3 border border-indigo-100">
+              <h3 class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                <span
+                  class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">1</span>
+                Lấy API Key miễn phí
+              </h3>
+              <ol class="text-sm text-slate-700 space-y-1.5 pl-2">
+                <li>• Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-indigo-600 underline font-medium">aistudio.google.com/app/apikey</a></li>
+                <li>• Đăng nhập bằng tài khoản Google</li>
+                <li>• Bấm <strong>"Create API key"</strong> → chọn project (hoặc tạo mới) → copy key</li>
+                <li>• Mở <strong>⚙️ Cài đặt</strong> ở góc trên phải → dán key vào → bấm Lưu</li>
+              </ol>
+              <p class="text-xs text-slate-500 italic">Hoàn toàn miễn phí, không cần thẻ tín dụng.</p>
+            </div>
+
+            <div class="bg-white rounded-lg p-4 space-y-3 border border-indigo-100">
+              <h3 class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                <span
+                  class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">2</span>
+                Chọn Model phù hợp
+              </h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex gap-3 items-start">
+                  <span class="shrink-0 mt-0.5">⚡</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Flash <span class="text-xs font-normal text-indigo-500">—
+                        Khuyến nghị</span></p>
+                    <p class="text-slate-600 text-xs">Nhanh, ổn định, 250 lượt/ngày. Đủ dùng cho 1 lớp ~20 bé.
+                      <strong>Chọn cái này nếu phân vân.</strong>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="shrink-0 mt-0.5">🚀</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Flash Lite</p>
+                    <p class="text-slate-600 text-xs">Cực nhanh, 1000 lượt/ngày, nhưng chất lượng văn phong thấp hơn
+                      Flash một chút.</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="shrink-0 mt-0.5">🎯</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Pro <span class="text-xs font-normal text-amber-600">— Hay
+                        bị từ chối</span></p>
+                    <p class="text-slate-600 text-xs">Chất lượng cao nhất, viết tự nhiên nhất. Nhưng giới hạn 100
+                      lượt/ngày, 5 lượt/phút, và Google thường ưu tiên paid users nên hay bị 429. Nếu Pro fail, app sẽ
+                      tự fallback sang Flash.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
+              🔒 <strong>Lưu ý quyền riêng tư:</strong> Khi dùng AI, nội dung được gửi tới Google. Tên thật của bé được
+              tự động ẩn (chỉ gửi nickname). Đừng nhập SĐT, địa chỉ, hay thông tin nhạy cảm vào các ô ghi chú.
+            </div>
+          </div>
+        </section>
+
+        <!-- STUDENT INFO -->
+        <section id="studentInfoSection" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+          <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Thông tin học sinh</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Họ và tên đầy đủ</label>
+              <input id="fullName" type="text" placeholder="VD: Nguyễn Văn A"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Tên thay thế (nickname)</label>
+              <input id="nickName" type="text" placeholder="VD: Adam, Andy..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              <p class="text-xs text-slate-400 mt-1">💡 Đặt nickname khác biệt rõ với tên thật (vd: "Adam, Andy..." thay
+                vì "A").
+                Đây là tên được gửi sang AI để bảo vệ thông tin của bé.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- MODE 1 FORM -->
+        <section id="form1" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+          <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Điểm thi cuối khóa</h2>
+          <div class="space-y-3" id="skillRows"></div>
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Các điểm ngữ pháp bé sai <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <textarea id="grammarMistakes" rows="2" placeholder="VD: quên 's' cho ngôi thứ 3, dùng sai thì..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Chủ đề từ vựng bé chưa nắm rõ <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <textarea id="vocabGaps" rows="2" placeholder="VD: từ về nghề nghiệp, tính từ miêu tả..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Ghi chú thêm về quá trình học trong khóa <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <textarea id="extraNotes1" rows="2" placeholder="VD: bé tích cực, hay xung phong..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+              <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- MODE 2 FORM -->
+        <section id="form2" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+          <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Tình hình học tập tháng này</h2>
+          <div id="categoryGroups" class="space-y-5"></div>
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Điểm ngữ pháp mới của khóa <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <input id="grammarPoint" type="text" placeholder="VD: Thì Tương lai gần (Be going to)"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Lỗi sai phổ biến về ngữ pháp đó <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <textarea id="grammarErrors2" rows="2" placeholder="VD: hay quên Tobe trước going to..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Ghi chú riêng về bé tháng này <span
+                  class="text-slate-400">(tuỳ chọn)</span></label>
+              <textarea id="extraNotes2" rows="2" placeholder="VD: bé tiến bộ rõ rệt so với tháng trước..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+              <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- MODE 3 FORM -->
+        <section id="form3" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+          <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Điểm bài tập về nhà</h2>
+
+          <div id="scoreRows" class="space-y-2"></div>
+
+          <p class="text-xs text-slate-500 italic">
+            💡 Nếu nhập ngày mà không nhập điểm → bảng sẽ hiển thị <strong>"Chưa hoàn thành"</strong> cho bài đó.
+          </p>
+
+          <div class="flex flex-wrap gap-4">
+            <button type="button" onclick="addScoreRow()"
+              class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors">
+              + Thêm dòng
+            </button>
+            <button type="button" onclick="openCalendarPicker()"
+              class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors">
+              📅 Chọn ngày từ lịch
+            </button>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100">
+            <label class="block text-sm text-slate-600 mb-1">Ghi chú tùy ý <span class="text-slate-400">(tuỳ
+                chọn)</span></label>
+            <textarea id="customNote3" rows="2" placeholder="VD: Bé thường nộp bài đúng hạn, có vài bài muộn 1 ngày..."
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+            <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+          </div>
+
+          <div class="pt-2">
+            <button onclick="generate3()"
+              class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
+              ✨ Tạo báo cáo
+            </button>
+          </div>
+        </section>
+
+        <!-- MODE 3 PREVIEW PANEL -->
+        <section id="reportPreview" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-5">
+
+          <!-- Editable Nhận xét -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Nhận xét <span
+                class="text-slate-400 font-normal">(có thể chỉnh sửa trước khi xuất ảnh)</span></label>
+            <textarea id="nhanXetEditor" rows="6"
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono"></textarea>
+            <p class="text-xs text-slate-500">💡 Mỗi dòng bắt đầu bằng <code class="bg-slate-100 px-1 rounded">•</code>.
+              Bọc chữ trong <code class="bg-slate-100 px-1 rounded">**chữ**</code> để in đậm trong bảng. Bạn có thể sửa
+              câu chữ hoặc thêm/bớt dòng tùy ý.</p>
+            <button onclick="updateReportCard()"
+              class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
+              ✅ Cập nhật bảng
+            </button>
+          </div>
+
+          <!-- Visual preview card -->
+          <div class="border border-slate-200 rounded-xl overflow-auto">
+            <div id="reportCard" class="bg-white p-8 mx-auto"
+              style="width:700px; font-family:'Times New Roman',serif; color:#000;">
+              <h1 style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:1rem;">BẢNG TỔNG HỢP TIẾN
+                ĐỘ BÀI TẬP</h1>
+              <p id="rcStudentName" style="margin-bottom:1rem;"></p>
+              <table id="rcTable" style="width:100%; border-collapse:collapse; margin-bottom:1.5rem;">
+                <thead>
+                  <tr>
+                    <th style="border:1px solid #000; padding:6px 12px; text-align:left;">Ngày</th>
+                    <th style="border:1px solid #000; padding:6px 12px; text-align:left;">Điểm số</th>
+                  </tr>
+                </thead>
+                <tbody id="rcTableBody"></tbody>
+              </table>
+              <p style="font-weight:600; margin-bottom:0.5rem;">Nhận xét:</p>
+              <div id="reportNhanXet" style="padding-left:1rem; white-space:pre-wrap; line-height:1.7;"></div>
+            </div>
+          </div>
+
+          <!-- Download button -->
+          <button onclick="downloadReportPNG()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
+            🖼 Tải ảnh PNG
+          </button>
+        </section>
+
+
+        <!-- MODE 4: ILA SCORE REPORT -->
+        <div id="mode4Container" class="hidden space-y-4">
+
+          <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+            <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#128229; Import dữ liệu điểm
+            </h2>
+
+            <details class="m4-guide mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4" open>
+              <summary class="cursor-pointer font-semibold text-slate-700 text-sm select-none">&#128221; Hướng
+                dẫn lấy dữ liệu điểm sử dụng lệnh Console (Chỉ áp dụng cho TA của ILA)</summary>
+              <div class="mt-3 space-y-3 text-sm text-slate-600">
+                <ol class="list-decimal pl-5 space-y-1.5">
+                  <li>Đăng nhập <strong>ILA</strong> → vào <strong>Admin</strong> → <strong>My Classes</strong>.</li>
+                  <li>Chọn <strong>lớp</strong> cần lấy điểm → mở mục <strong>Grades</strong> (bảng điểm).</li>
+                  <li>Mở <strong>Console</strong> của trình duyệt:
+                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                      <li><strong>Windows:</strong> nhấn <kbd>F12</kbd> rồi chọn tab <strong>Console</strong> — hoặc
+                        nhấn nhanh <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd>.</li>
+                      <li><strong>macOS:</strong> nhấn <kbd>⌘ Cmd</kbd> + <kbd>⌥ Option</kbd> + <kbd>J</kbd> — hoặc
+                        <kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>I</kbd> rồi chọn tab <strong>Console</strong>.
+                      </li>
+                    </ul>
+                  </li>
+                  <li>Bấm <strong>Sao chép lệnh</strong> bên dưới → <strong>dán</strong> vào Console → nhấn
+                    <kbd>Enter</kbd>.
+                    <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                      <strong>Lần đầu dán lệnh vào Console?</strong> Vì lý do an toàn, trình duyệt sẽ chặn và yêu cầu
+                      bạn tự gõ dòng chữ <code class="px-1 rounded bg-amber-100 font-mono">allow pasting</code> rồi nhấn
+                      <kbd>Enter</kbd>. Sau đó mới dán (paste) được lệnh vào Console.
+                    </div>
+                  </li>
+                  <li>Trình duyệt sẽ tự tải về file <strong>"Dữ liệu bảng điểm.csv"</strong>. Tải file đó lên ở tab
+                    <strong>"Tải file .csv"</strong>, hoặc mở file rồi dán nội dung vào tab <strong>"Dán văn
+                      bản"</strong> bên dưới.
+                  </li>
+                </ol>
+                <div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                    <span class="text-xs font-semibold text-slate-500">Lệnh lấy điểm (chạy trong Console)</span>
+                    <button id="m4CopyBtn" onclick="m4CopyScoreScript()"
+                      class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                        stroke-linejoin="round" width="14" height="14" class="inline align-[-2px] mr-1">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>Sao chép lệnh</button>
+                  </div>
+                  <pre id="m4ScoreScriptView"
+                    class="m-0 px-3 py-2 text-[11px] leading-relaxed text-slate-700 overflow-auto max-h-40 font-mono whitespace-pre"></pre>
+                </div>
+                <p class="text-xs text-slate-400">Lệnh CHỈ ĐỌC bảng điểm đang mở để xuất CSV và lưu về máy người dùng.
+                </p>
+              </div>
+            </details>
+
+            <div class="flex border-b border-slate-200 mb-4">
+              <button id="m4TabPaste" onclick="m4SwitchTab('paste')"
+                class="px-4 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500">Dán văn
+                bản</button>
+              <button id="m4TabFile" onclick="m4SwitchTab('file')"
+                class="px-4 py-2 text-sm font-semibold text-slate-400 border-b-2 border-transparent">Tải file
+                .csv</button>
+            </div>
+            <div id="m4PaneP">
+              <textarea id="m4PasteArea" rows="6" placeholder="Dán nội dung CSV (đã lọc) vào đây..."
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y font-mono"
+                oninput="m4UpdateCharCount()"></textarea>
+              <div class="flex items-center gap-2 mt-2">
+                <button onclick="m4ParsePaste()"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                    stroke-linejoin="round" width="15" height="15" class="inline align-[-2px] mr-1">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>Phân tích dữ liệu</button>
+                <button onclick="m4ClearPaste()"
+                  class="border border-slate-200 text-slate-600 hover:border-red-400 hover:text-red-500 text-sm px-4 py-2 rounded-lg transition-colors">&#10005;
+                  Xóa</button>
+                <span id="m4CharCount" class="text-xs text-slate-400 ml-auto">0 ký tự</span>
+              </div>
+            </div>
+            <div id="m4PaneF" class="hidden">
+              <div id="m4DropZone"
+                class="border-2 border-dashed border-indigo-200 rounded-xl p-8 text-center cursor-pointer bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+                onclick="document.getElementById('m4FileInput').click()"
+                ondragover="event.preventDefault();this.classList.add('border-indigo-500')"
+                ondragleave="this.classList.remove('border-indigo-500')" ondrop="m4HandleDrop(event)">
+                <p class="text-slate-500 text-sm mb-2">&#128193; Kéo thả file .csv vào đây</p>
+                <p class="text-slate-400 text-xs">hoặc click để chọn file</p>
+              </div>
+              <input id="m4FileInput" type="file" accept=".csv" class="hidden" onchange="m4HandleFileInput(event)" />
+            </div>
+            <div id="m4ImpError"
+              class="hidden bg-red-50 text-red-700 border border-red-200 rounded-lg p-3 mt-2 text-sm"></div>
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-3">
+              <span class="text-xs text-slate-400">hoặc</span>
+              <button onclick="m4AddStudentManual()"
+                class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                ➕ Thêm học sinh thủ công
+              </button>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+            <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">Thông tin lớp học</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div><label class="block text-xs text-slate-600 mb-1">Class Name</label><input id="m4Class" type="text"
+                  placeholder="VD: SJ4A" oninput="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div><label class="block text-xs text-slate-600 mb-1">Start date</label><input id="m4StartDate"
+                  type="text" placeholder="26/10/2025" oninput="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div><label class="block text-xs text-slate-600 mb-1">End date</label><input id="m4EndDate" type="text"
+                  placeholder="25/01/2026" oninput="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div><label class="block text-xs text-slate-600 mb-1">Teacher</label><input id="m4Teacher" type="text"
+                  placeholder="Tên giáo viên" oninput="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div><label class="block text-xs text-slate-600 mb-1">T.A</label><input id="m4TA" type="text"
+                  placeholder="Tên TA" oninput="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div><label class="block text-xs text-slate-600 mb-1">Level</label><select id="m4ClassCode"
+                  onchange="m4RenderCard()"
+                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                  <option value="" selected>-- Chọn level --</option>
+                  <option value="J">Super Juniors (J)</option>
+                  <option value="S">Smart Teen (S)</option>
+                  <option value="I">IELTS (I)</option>
+                </select></div>
+            </div>
+          </section>
+
+          <div id="m4StudentsSection" class="hidden space-y-4">
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-3">Danh sách học sinh</h2>
+              <div id="m4StudentsGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"></div>
+            </section>
+          </div>
+
+          <div id="m4WorkArea" class="hidden space-y-4">
+
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#9881;&#65039; Tùy chỉnh
+                hiển thị phiếu điểm</h2>
+              <div id="m4Panel" class="space-y-1"></div>
+              <div class="mt-3 pt-3 border-t border-slate-100">
+                <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+                  <input type="checkbox" id="m4SplitVGRW" onchange="m4ToggleSplitVGRW()" class="accent-indigo-600" />
+                  <span>Tách điểm Vocabulary / Grammar / Reading / Writing</span>
+                </label>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                  <strong>Chú ý:</strong> Khi tách điểm, hãy nhập đầy đủ điểm 4 phần (Vocabulary, Grammar, Reading,
+                  Writing) rồi bấm <strong>Tạo lại nhận xét</strong> để nhận xét từng kỹ năng được chính xác hơn. Nếu để
+                  trống, hệ thống sẽ nhận xét gộp theo điểm VGRW.
+                </p>
+              </div>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#9999;&#65039; Chỉnh sửa
+                thông tin học sinh</h2>
+              <div id="m4StampToggle" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-amber-800 font-semibold mb-2">&#9888;&#65039; Điểm 60–65: giáo viên quyết định
+                  kết quả</p>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="radio" name="m4StampChoice"
+                      value="passed" onchange="m4SetStampOverride('passed')" class="accent-emerald-600" />
+                    Passed</label>
+                  <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="radio" name="m4StampChoice"
+                      value="failed" onchange="m4SetStampOverride('failed')" class="accent-red-600" /> Failed</label>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div><label class="block text-xs text-slate-600 mb-1">Họ và tên đầy đủ</label><input id="m4EditName"
+                    type="text" oninput="m4OnEditName()"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+                <div><label class="block text-xs text-slate-600 mb-1">English name</label><input id="m4EditAltName"
+                    type="text" oninput="m4OnEditAltName()"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-600 mb-1">Nhận xét</label>
+                  <textarea id="m4EditComment" rows="6" oninput="m4OnEditComment()"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y"></textarea>
+                  <div class="flex items-center justify-between gap-2 mt-1">
+                    <p class="text-xs text-slate-400">Bọc chữ trong <code
+                        class="bg-slate-100 px-1 rounded">**chữ**</code> để in đậm.</p>
+                    <button type="button" onclick="m4RegenComment()"
+                      class="flex-shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 rounded-lg px-3 py-1.5 transition-colors"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                        stroke-linejoin="round" width="13" height="13" class="inline align-[-2px] mr-1">
+                        <path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8" />
+                        <path d="M3 3v5h5" />
+                      </svg>Tạo lại nhận xét theo điểm</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#11015;&#65039; Tải xuống
+              </h2>
+              <div class="flex flex-wrap gap-3">
+                <button onclick="m4DownloadPNG()"
+                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">&#128444;
+                  Tải PNG (1 bé)</button>
+                <button onclick="m4DownloadPDF()"
+                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">&#128196;
+                  Tải PDF (1 bé)</button>
+                <button onclick="m4DownloadZIP()"
+                  class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm shadow-sm transition-colors">&#128476;
+                  Tải cả lớp (ZIP)</button>
+              </div>
+              <p id="m4ZipProgress" class="text-sm text-slate-600 mt-2 hidden"></p>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#128065; Preview phiếu điểm
+              </h2>
+              <div class="border border-slate-200 rounded-xl overflow-auto">
+                <div id="m4ReportCard"></div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+        <!-- BOTTOM ACTION BAR -->
+        <section id="actionBar" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+            <div class="flex-1 space-y-1">
+              <label class="block text-sm text-slate-600">Khung giờ gọi lại</label>
+              <input id="timeSlot" type="text" placeholder="VD: 8:00 – 9:00 sáng"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div class="flex-1 space-y-1">
+              <label class="block text-sm text-slate-600">Ngày gọi lại</label>
+              <input id="callDate" type="text" placeholder="VD: thứ Bảy ngày 17/5"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <button onclick="generate()"
+              class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
+              ✨ Tạo báo cáo
+            </button>
+          </div>
+        </section>
+
+        <!-- AI WARNING BANNER (shown after AI used) -->
+        <div id="aiBanner"
+          class="hidden bg-amber-50 border border-amber-300 rounded-xl px-4 py-2.5 text-xs text-amber-800 font-medium">
+          ⚠ Output từ AI — vui lòng đọc kỹ và đối chiếu với thông tin thực tế về bé trước khi gửi PH.
+        </div>
+
+        <!-- OUTPUT PANEL -->
+        <section id="outputPanel" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="flex border-b border-slate-100">
+            <button id="tabA" onclick="switchTab('A')"
+              class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500">
+              💬 Tin nhắn gửi PH
+            </button>
+            <button id="tabB" onclick="switchTab('B')"
+              class="flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent">
+              📋 TA Log
+            </button>
+          </div>
+          <div class="p-5 space-y-3">
+
+            <!-- Panel A: parent message -->
+            <div id="panelA">
+              <pre id="outputParent" class="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <button onclick="copyText('outputParent', 'copyBtnA')" id="copyBtnA"
+                  class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full transition-colors">
+                  Sao chép
+                </button>
+                <button onclick="triggerAI('standard')" id="aiBtnStandard"
+                  class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-full transition-colors font-medium"
+                  title="Đa dạng câu chữ, vẫn giọng lễ phép trang trọng">
+                  ✨ Viết lại bằng AI
+                </button>
+                <button onclick="triggerAI('humanize')" id="aiBtnHumanize"
+                  class="text-xs bg-[#718A9E] hover:bg-[#5E7585] text-white px-4 py-1.5 rounded-full transition-colors font-medium"
+                  title="Cắt rườm rà, gần gũi như TA nói chuyện thực tế với PH">
+                  💬 Humanize
+                </button>
+                <button onclick="revertAI()" id="revertBtn"
+                  class="hidden text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-1.5 rounded-full transition-colors font-medium">
+                  ↩ Quay lại bản gốc
+                </button>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">
+                <strong class="text-indigo-600">✨ Viết lại</strong>: tinh chỉnh lại giọng văn, lễ phép trang trọng.
+                <strong class="text-[#718A9E]">💬 Humanize</strong>: cắt từ thừa, văn ngắn gọn gần gũi.
+              </p>
+              <p class="text-xs text-slate-400 mt-1">Tính năng AI gửi nội dung qua Google. Tên bé được ẩn tự động. TA
+                chịu trách nhiệm kiểm tra output.</p>
+            </div>
+
+            <!-- Panel B: TA Log -->
+            <div id="panelB" class="hidden">
+              <pre id="outputLog" class="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+              <button onclick="copyText('outputLog', 'copyBtnB')" id="copyBtnB"
+                class="mt-3 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full transition-colors">
+                Sao chép
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      <!-- MODE 4: ADD STUDENT MODAL -->
+      <div id="m4AddModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+          <h3 class="font-semibold text-slate-700">Thêm học sinh</h3>
+          <div>
+            <label class="block text-xs text-slate-600 mb-1">Họ và tên (VD: Nguyễn Văn A)</label>
+            <input id="m4AddName" type="text" placeholder="Nguyễn Văn A"
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              onkeydown="if(event.key==='Enter')m4ConfirmAddStudent()" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-600 mb-1">English name (tuỳ chọn)</label>
+            <input id="m4AddEngName" type="text" placeholder="Andy"
+              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              onkeydown="if(event.key==='Enter')m4ConfirmAddStudent()" />
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button onclick="m4CloseAddModal()"
+              class="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50">Hủy</button>
+            <button onclick="m4ConfirmAddStudent()"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg">✅
+              Thêm</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /#mainArea -->
+  </div><!-- /#appShell -->
+
+  <!-- Lệnh lấy điểm CSV (bản gốc: lay_diem_csv.js). type="text/plain" → trình duyệt KHÔNG chạy,
+       chỉ dùng làm nguồn văn bản cho nút "Sao chép lệnh" ở Mode 4. Ký tự < > & trong code được
+       giữ nguyên vì nội dung <script> không bị HTML phân tích cú pháp (trừ "</script>"). -->
+  <script type="text/plain" id="m4ScoreScriptSrc">// ============================================================
+//  LẤY ĐIỂM TỪ BẢNG -> XUẤT CSV
+//  Cách dùng: mở trang bảng điểm -> F12 -> Console -> dán -> Enter
+// ============================================================
+(function () {
+  // ====== TUỲ CHỌN ======
+  var ANONYMIZE = false; // true = chỉ xuất biệt danh, ẩn tên thật
+
+  var table = document.querySelector('table.table-control');
+  if (!table) { console.error('Không tìm thấy table.table-control.'); return; }
+
+  var C = function (s) { return (s || '').replace(/\s+/g, ' ').trim(); };
+  var titleCase = function (str) {
+    return C(str).toLocaleLowerCase('vi').split(' ').map(function (w) {
+      if (!w) return w; var c = Array.from(w);
+      return c[0].toLocaleUpperCase('vi') + c.slice(1).join('');
+    }).join(' ');
+  };
+  var uidText = function (root, uid) {
+    var e = root.querySelector('[data-uid="' + uid + '"]'); return e ? C(e.innerText) : '';
+  };
+
+  // ---- 0. Đọc thông tin lớp từ thẻ .project-item.style-clickable (class code/GV/TA/ngày) ----
+  var readClassMeta = function () {
+    var cards = Array.from(document.querySelectorAll('.project-item.style-clickable'));
+    var card = cards.filter(function (el) { return /start\s*date/i.test(el.innerText || ''); })
+      .sort(function (a, b) { return (a.innerText || '').length - (b.innerText || '').length; })[0];
+    if (!card) return null;
+    var toks = [];
+    Array.from(card.querySelectorAll('*')).forEach(function (el) {
+      if (!el.children.length) { var t = C(el.textContent); if (t && toks[toks.length - 1] !== t) toks.push(t); }
+    });
+    var codeRe = /[A-Z0-9]{3,}-[0-9]+[A-Z]?-[0-9]{2}[A-Z][0-9]{2}/;
+    var labelIdx = function (re) { for (var i = 0; i < toks.length; i++) { if (re.test(toks[i])) return i; } return -1; };
+    var valAfter = function (re) { var i = labelIdx(re); return i >= 0 ? C(toks[i + 1] || '') : ''; };
+    var code = '', codeAt = -1;
+    for (var i = 0; i < toks.length; i++) { var m = toks[i].match(codeRe); if (m) { code = m[0]; codeAt = i; break; } }
+    var taIdx = labelIdx(/^TAs?\s*name/i);
+    var teacher = taIdx > 0 ? C(toks.slice(codeAt + 1, taIdx).join(' ')) : '';
+    return { classCode: code, teacher: teacher, ta: valAfter(/^TAs?\s*name/i), startDate: valAfter(/^start\s*date/i), endDate: valAfter(/^end\s*date/i) };
+  };
+
+  // ---- 1. Lấy mọi hàng, tự dò hàng tiêu đề ----
+  var rows = Array.from(table.rows);
+  if (!rows.length) { console.error('Bảng không có hàng nào.'); return; }
+  var h1 = rows.findIndex(function (r) {
+    return Array.from(r.cells).some(function (c) { return /student\s*name/i.test(c.innerText); });
+  });
+  if (h1 < 0) h1 = 0;
+  var hasSub = Array.from(rows[h1].cells).some(function (c) { return (c.colSpan || 1) > 1; });
+  var subRow = hasSub ? rows[h1 + 1] : null;
+  var dataStart = h1 + (hasSub ? 2 : 1);
+
+  // ---- 2. Dựng danh sách cột "lá" theo thứ tự ô trong hàng dữ liệu ----
+  var groups = [];
+  Array.from(rows[h1].cells).forEach(function (th) {
+    var name = C(th.innerText);
+    if ((th.rowSpan || 1) >= 2) groups.push({ name: name, leaves: [name] });
+    else groups.push({ name: name, colspan: th.colSpan || 1, leaves: null });
+  });
+  var subCells = subRow ? Array.from(subRow.cells).map(function (c) { return C(c.innerText); }) : [];
+  var p = 0;
+  groups.forEach(function (g) { if (g.leaves === null) { g.leaves = subCells.slice(p, p + g.colspan); p += g.colspan; } });
+  var leafCols = [];
+  groups.forEach(function (g) { g.leaves.forEach(function (lf) { leafCols.push({ group: g.name, label: lf }); }); });
+
+  var scoreIdx = leafCols.map(function (_, i) { return i; })
+    .filter(function (i) { return i > 0 && !/cambridge/i.test(leafCols[i].group); });
+  var scoreLabels = scoreIdx.map(function (i) { return leafCols[i].label; });
+
+  // ---- 3. Đọc 1 ô điểm (input.value hoặc text), trống -> 0 ----
+  var readScore = function (td) {
+    var inp = td.querySelector('input, textarea');
+    var v = C(inp ? inp.value : td.innerText);
+    if (v === '' || v === '-' || v === '—') return '0.00';
+    var n = parseFloat(v.replace(',', '.'));
+    return isNaN(n) ? '0.00' : n.toFixed(2);
+  };
+
+  // ---- 4. Đọc tên: ưu tiên data-uid, fallback tách dòng ----
+  var readName = function (c0) {
+    if (c0.querySelector('[data-uid="firstname"], [data-uid="nickname"]')) {
+      var full = [uidText(c0, 'firstname'), uidText(c0, 'midname'), uidText(c0, 'lastname')]
+        .filter(Boolean).join(' ');
+      return { name: titleCase(full), nickname: uidText(c0, 'nickname'), code: uidText(c0, 'staffcode').replace(/[()]/g, '') };
+    }
+    var lines = (c0.innerText || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+    return { name: titleCase(lines[0] || ''), nickname: lines[1] ? C(lines[1].split('(')[0]) : '', code: '' };
+  };
+
+  // ---- 5. Duyệt học sinh ----
+  var out = [], warn = 0;
+  for (var r = dataStart; r < rows.length; r++) {
+    var cells = rows[r].cells;
+    if (cells.length !== leafCols.length) { warn++; continue; }
+    var nm = readName(cells[0]);
+    var scores = scoreIdx.map(function (i) { return readScore(cells[i]); });
+    var ident = nm.nickname || nm.code; // ẩn danh: ưu tiên biệt danh, không có thì dùng mã
+    out.push(ANONYMIZE ? [ident].concat(scores) : [nm.name, nm.nickname].concat(scores));
+  }
+  if (!out.length) { console.error('Không đọc được học sinh nào.'); return; }
+  if (warn) console.warn(warn + ' hàng bị bỏ qua do số ô không khớp.');
+
+  // ---- 6. Xuất CSV (BOM để Excel mở đúng tiếng Việt) ----
+  var header = ANONYMIZE ? ['Biệt danh'].concat(scoreLabels) : ['Student Name', 'Nickname'].concat(scoreLabels);
+  var cell = function (v) { var s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  var csv = String.fromCharCode(0xFEFF) + [header].concat(out).map(function (row) { return row.map(cell).join(','); }).join('\r\n');
+
+  // ---- 6b. Kèm thông tin lớp vào cuối file ----
+  var meta = readClassMeta();
+  if (meta) {
+    var metaRows = [
+      ['#META', 'classCode', meta.classCode], ['#META', 'teacher', meta.teacher], ['#META', 'ta', meta.ta],
+      ['#META', 'startDate', meta.startDate], ['#META', 'endDate', meta.endDate]
+    ];
+    csv += '\r\n' + metaRows.map(function (row) { return row.map(cell).join(','); }).join('\r\n');
+  } else {
+    console.warn('Không thấy thẻ thông tin lớp (.project-item.style-clickable) — CSV không kèm metadata.');
+  }
+
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  link.download = 'Dữ liệu bảng điểm.csv';
+  link.click();
+  URL.revokeObjectURL(link.href);
+
+  console.log('Xong! ' + out.length + ' học sinh, ' + scoreLabels.length + ' cột điểm.'
+    + (meta ? ' | Lớp: ' + meta.classCode + ' · GV: ' + meta.teacher + ' · TA: ' + meta.ta + ' · ' + meta.startDate + ' → ' + meta.endDate : ' (không có metadata lớp)'));
+})();</script>
+
+  <script src="js/config.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/dotfield.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/mode4.js"></script>
+  <script src="js/mode3.js"></script>
+  <script src="js/mode1.js"></script>
+  <script src="js/mode2.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
