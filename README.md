@@ -1,78 +1,120 @@
 # 📚 TA Report Helper
 
-> A lightweight web tool that helps Teaching Assistants at Vietnamese English centers draft monthly progress reports and end-of-course exam feedback for parents — fast, structured, and with a natural Vietnamese tone.
+> A lightweight web tool that helps Teaching Assistants at Vietnamese English centers draft monthly progress reports, end-of-course exam feedback, homework summaries, and printable score cards for parents — fast, structured, and with a natural Vietnamese tone.
 
 [![Made with HTML](https://img.shields.io/badge/Made%20with-HTML-orange)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC)](https://tailwindcss.com/)
 [![Gemini API](https://img.shields.io/badge/AI-Gemini%202.5-blue)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+🔗 **Live demo:** https://ntkn-gulu.github.io/TA-Report-Helper/
+
 ---
 
 ## 🎯 About
 
-At Vietnamese English centers, Teaching Assistants (TAs) are required to send monthly progress reports to every parent, plus end-of-course exam feedback every 3 months. With 20–30 students per class, hand-writing personalized feedback for each child takes hours — and writing too briefly often leads to parent complaints.
+At Vietnamese English centers, Teaching Assistants (TAs) are required to send monthly progress reports to every parent, plus end-of-course exam feedback every few months. With 20–30 students per class, hand-writing personalized feedback for each child takes hours — and writing too briefly often leads to parent complaints.
 
-**TA Report Helper** is a single-page web app that solves this by:
+**TA Report Helper** turns that into a few minutes of work. Pick a report type, fill in the scores or tick a few options, and get a polished, parent-ready message or a printable score card. Everything runs in the browser — no install, no backend, no build step.
 
-- ✅ Pre-built phrasings for the most common student situations (39+ templates)
-- ✅ Two structured report modes: monthly progress and end-of-course exam
-- ✅ Optional AI rewriting via Google Gemini for more variety and natural tone
+- ✅ Four report modes covering every routine TA reporting task
+- ✅ Dozens of hand-crafted Vietnamese phrasings, auto-selected by performance tier
+- ✅ Printable/exportable score cards (PNG, PDF, and whole-class ZIP)
+- ✅ Optional AI rewriting via Google Gemini for more variety and a natural tone
 - ✅ Automatic privacy protection — real names are redacted before any AI call
-- ✅ Auto-generated internal TA Log summary for back-office reporting
 
-Output is in Vietnamese (the language used between TAs and parents in Vietnam). The interface itself is also Vietnamese.
+The generated output is in Vietnamese (the language used between TAs and parents), and the interface is Vietnamese too.
 
 ---
 
 ## ✨ Features
 
-### 📊 Two report modes
+The app is organized into **four modes**, selectable from the landing page or the sidebar.
 
-- **End-of-course exam report**: Input scores for 6 skills (Vocab, Grammar, Listening, Reading, Writing, Speaking). The app auto-classifies each skill into 4 performance tiers and generates skill-specific feedback.
-- **Monthly progress report**: Select options across 13 categories (attitude, focus, communication, comprehension, homework completion, etc.). Each category × tier combination maps to a hand-crafted Vietnamese phrasing.
+### 1️⃣ End-of-course exam report (message)
 
-### 🤖 Optional AI integration
+Generate a polite parent message from exam scores.
 
-- **✨ Rewrite with AI**: Diversifies phrasing while keeping a formal, polite register.
-- **💬 Humanize**: Trims redundancy and produces shorter, more conversational sentences — closer to how a real TA texts a parent.
-- Both modes use Google Gemini 2.5 with a free API key (250 requests/day on Flash).
-- Auto-fallback from Pro to Flash when the Pro tier returns rate-limit errors (which happens often on free tier).
+- Enter scores for **6 skills** (Vocabulary, Grammar, Listening, Reading, Writing, Speaking) with a custom max per skill.
+- Each skill is auto-classified into **4 performance tiers** (Excellent / Good / Average / Needs work), and a matching, hand-written Vietnamese sentence is selected.
+- Vocabulary + Grammar are merged into a single sentence when they land in the same tier, for a more natural read.
+- Optional free-text fields for specific grammar mistakes, weak vocabulary topics, and extra notes.
+- Produces both the **parent message** and a short **internal TA Log** for back-office records.
+
+### 2️⃣ Monthly progress report (message)
+
+Generate a monthly classroom-behavior message with a few clicks.
+
+- Tick **Good / Okay / Needs improvement** across categories: attitude, focus, class interaction, comprehension, pronunciation, grammar knowledge, the four skills, homework completion, and more.
+- Each category × tier maps to a carefully worded Vietnamese phrasing.
+- Dedicated field for the course's new grammar point + common errors, with a reminder to review the "Reminder" notebook.
+- Also outputs the parent message + internal TA Log.
+
+### 3️⃣ Homework score report (image)
+
+Turn a list of homework scores into a clean, shareable report card.
+
+- Add score rows manually (**Date + Score /10**, up to 20) or pick dates from a **multi-select calendar** that spans multiple months.
+- **Real-time validation**: date format (DD/MM or DD/MM/YYYY) and score range (0–10) with inline error highlighting.
+- "Not completed" handling — a date with no score is flagged distinctly.
+- **Auto-generated remarks**: number completed, overall consistency, highest score, average, and gentle warnings for low/missing scores.
+- Edit the remarks freely (supports `**bold**`), then **export the report card as a PNG**.
+- Color-coded table: low scores highlighted, incomplete entries marked in red.
+
+### 4️⃣ ILA end-of-course score card (image / PDF / ZIP)
+
+Produce official-looking per-student score cards for a whole class at once.
+
+- **Import scores from a CSV** by pasting text or dropping a file.
+- For ILA TAs: an in-app **browser Console command** (with a one-click copy button + step-by-step guide) scrapes the grade table directly from the ILA system and exports the CSV — no manual typing.
+- The same command also reads **class metadata** (class code, teacher, TA, start/end dates) and **auto-fills** the card.
+- Each card shows the correct **ILA level logo** and an **award stamp** (Best / Passed / Failed), with a manual pass/fail override for borderline cases.
+- Score breakdown: Project 1 & 2, VGRW (or split into Vocabulary / Grammar / Reading / Writing), Speaking, Listening, Homework, and Total — toggle which rows appear.
+- **Auto-generated per-skill comments** based on each skill's tier (merged into one paragraph, or split per skill when individual scores are provided), with a "regenerate from scores" button. Names and comments are fully editable per student.
+- **Export options**: single **PNG**, single **PDF**, or a **ZIP of the entire class** (one PNG per student).
+
+### 🤖 Optional AI rewriting (message modes)
+
+For the two message modes, polish the rule-based draft with Google Gemini:
+
+- **✨ Rewrite with AI** — diversifies phrasing while keeping a formal, polite register.
+- **💬 Humanize** — trims redundancy into shorter, more conversational sentences, closer to how a real TA texts a parent.
+- Uses Google Gemini 2.5 with a free API key, and **auto-falls back from Pro to Flash** when the Pro tier hits rate limits.
+- **↩ Revert** returns to the original rule-based output anytime.
 
 ### 🔒 Privacy by design
 
-- Student's real name is automatically replaced with a nickname before any API call.
-- Phone numbers and Vietnamese ID patterns are stripped as defense-in-depth.
-- API key is stored only in the browser's `localStorage` — never transmitted to anything other than the Gemini endpoint.
-- First-time disclaimer modal explicitly warns users about AI responsibility and sensitive data.
+- The student's real name is automatically replaced with a nickname **before any API call**.
+- Phone numbers and Vietnamese ID-like patterns are stripped as defense-in-depth.
+- The API key is stored only in the browser's `localStorage` and is sent only to the Gemini endpoint.
+- A first-time disclaimer modal explains AI responsibility and sensitive-data handling.
 
-### 📝 Workflow extras
+### 🎨 Interface & quality-of-life
 
-- Auto-generated short TA Log for internal back-office reporting.
-- One-click copy for both the parent message and the TA Log.
-- Persistent settings (nickname, callback time slot, AI model preference) saved in `localStorage`.
+- Clean, Notion-inspired UI (warm paper canvas, single blue accent, Inter font) with an animated landing page.
+- Collapsible sidebar to switch modes.
+- One-click copy for messages and the TA Log.
+- Persistent settings (callback time slot, AI model, dismissed welcome) saved in `localStorage`.
 
 ---
 
 ## 🚀 Getting Started
 
-### Option 1: Open the file directly (simplest)
+### Option 1: Use the live demo (simplest)
 
-1. Download `index.html`.
-2. Double-click to open it in any modern browser.
-3. That's it — no installation, no build step.
+Just open 👉 **https://ntkn-gulu.github.io/TA-Report-Helper/**
 
-### Option 2: Local server
+### Option 2: Run it locally
+
+Because the app is split into a few files (`index.html`, `css/`, `js/`, `assets/`), download or clone the whole repo, then either:
 
 ```bash
-# Python
-python3 -m http.server 5500
-
-# Or Node.js
-npx serve .
+# open index.html directly in a browser, OR serve it locally:
+python3 -m http.server 5500      # Python
+npx serve .                      # Node.js
 ```
 
-Then open `http://localhost:5500`.
+Then open `http://localhost:5500`. No installation and no build step — it's a pure static site.
 
 ---
 
@@ -90,21 +132,19 @@ The app works perfectly without AI — the rule-based phrasings alone produce so
 ### Step 2: Enter the key
 
 1. Open the app, click the **⚙️** icon in the top-right.
-2. Paste your API key.
-3. Select a model (Flash is recommended).
-4. Save.
+2. Paste your API key, select a model (Flash is recommended), and save.
 
 ### Step 3: Use the AI buttons
 
-After generating a report, click **✨ Rewrite with AI** or **💬 Humanize**. Use **↩ Revert** to go back to the original rule-based output anytime.
+After generating a message report, click **✨ Rewrite with AI** or **💬 Humanize**. Use **↩ Revert** to undo.
 
 ### Model comparison
 
 | Model | Free quota | Notes |
 |---|---|---|
-| ⚡ **Flash** (recommended) | 250 req/day | Fast, stable, plenty for one class |
-| 🚀 Flash Lite | 1000 req/day | Fastest, slightly lower writing quality |
-| 🎯 Pro | 100 req/day | Highest quality, but often returns 429 because Google deprioritizes free-tier Pro |
+| ⚡ **Flash** (recommended) | ~250 req/day | Fast, stable, plenty for one class |
+| 🚀 Flash Lite | ~1000 req/day | Fastest, slightly lower writing quality |
+| 🎯 Pro | ~100 req/day | Highest quality, but often rate-limited on free tier (auto-falls back to Flash) |
 
 ---
 
@@ -112,10 +152,13 @@ After generating a report, click **✨ Rewrite with AI** or **💬 Humanize**. U
 
 - **HTML5 + Vanilla JavaScript** — no framework, no build step
 - **Tailwind CSS** via CDN
+- **html2canvas** — render report cards to images
+- **jsPDF** — single-card PDF export
+- **JSZip** — whole-class ZIP export
 - **Google Gemini API** — optional, client-side calls only
-- **localStorage** — for user preferences and API key
+- **localStorage** — user preferences and API key
 
-Everything is contained in a single `index.html` file. No dependencies to install, no backend, fully client-side.
+Structure: `index.html` + `css/report-card.css` + a small set of `js/` modules (one per mode, plus shared config/utilities) + `assets/`. Fully client-side — no backend.
 
 ---
 
@@ -134,9 +177,9 @@ The app is designed to **save typing time**, not to replace the TA's judgment. B
 ### Privacy considerations when using AI
 
 When you click an AI button:
-- The redacted message (with nickname instead of real name) is sent to Google's servers.
+- The redacted message (with a nickname instead of the real name) is sent to Google's servers.
 - On Gemini's free tier, Google **may use prompts for model training** per their Terms of Service.
-- For complete privacy, upgrade to Gemini's paid tier (~$0.01/month for typical usage) — Google contractually does not train on paid-tier data.
+- For complete privacy, use Gemini's paid tier — Google contractually does not train on paid-tier data.
 
 The redaction is solid for free-tier use, but understand what you're sending if your center has strict data policies.
 
@@ -147,7 +190,7 @@ The redaction is solid for free-tier use, but understand what you're sending if 
 This is a personal project, but contributions are welcome — especially from other TAs.
 
 Particularly useful contributions:
-- Phrasings tuned for other Vietnamese English centers (Yola, ILA, VUS, Apollo, ACET, etc.)
+- Phrasings tuned for other Vietnamese English centers (Yola, VUS, Apollo, ACET, etc.)
 - AI prompt refinements for specific writing styles
 - Bug fixes and UX improvements
 
@@ -165,7 +208,7 @@ MIT License — free to use, modify, and share.
 
 - Built to solve the daily reporting workload faced by TAs at English centers in Ho Chi Minh City
 - Powered by [Google Gemini](https://ai.google.dev/) for the optional AI features
-- Developed with assistance from [Claude](https://claude.com) and [Claude Code](https://claude.com/code)
+- A big shout-out to [Claude](https://claude.com) and [Claude Code](https://claude.com/code) for the development assistance 💙
 
 ---
 
