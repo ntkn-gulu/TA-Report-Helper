@@ -31,10 +31,53 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@4.5.0/dist/bundles/anime.umd.min.js"></script>
   <link rel="stylesheet" href="css/report-card.css" />
 </head>
 
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+  <!-- ══════════════════════════════════════════════════════ ICON SPRITE (Lucide — bộ icon dùng chung toàn app)
+       Dùng: <svg class="ico"><use href="#i-tên"/></svg> — màu/kích thước ăn theo màu chữ & font-size chỗ đặt. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+    <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+    <symbol id="i-clipboard-list" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+    <symbol id="i-laugh" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
+    <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
+    <symbol id="i-meh" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" x2="16" y1="15" y2="15"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
+    <symbol id="i-frown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
+  </svg>
 
   <!-- ══════════════════════════════════════════════════════ LANDING PAGE -->
   <div id="landingView">
@@ -226,10 +269,10 @@
       <!-- ══════════════════════════════════════════════════════ DISCLAIMER MODAL -->
       <div id="disclaimerModal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
-          <h2 class="text-base font-bold text-slate-800">⚠️ LƯU Ý QUAN TRỌNG TRƯỚC KHI DÙNG TÍNH NĂNG AI</h2>
+          <h2 class="text-base font-bold text-slate-800"><svg class="ico text-amber-500"><use href="#i-alert"/></svg> LƯU Ý QUAN TRỌNG TRƯỚC KHI DÙNG TÍNH NĂNG AI</h2>
 
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2 text-sm text-slate-700">
-            <p class="font-semibold text-amber-800">🔒 Quyền riêng tư:</p>
+            <p class="font-semibold text-amber-800"><svg class="ico"><use href="#i-lock"/></svg> Quyền riêng tư:</p>
             <ul class="space-y-1 list-none pl-1">
               <li>• Nội dung sẽ được gửi đến Google để viết lại</li>
               <li>• Tên thật của bé được <strong>ẨN TỰ ĐỘNG</strong> (chỉ gửi tên thay thế như "Kelvin")</li>
@@ -243,7 +286,7 @@
           </div>
 
           <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-2 text-sm text-slate-700">
-            <p class="font-semibold text-indigo-700">✅ Trách nhiệm của TA:</p>
+            <p class="font-semibold text-indigo-700"><svg class="ico"><use href="#i-circle-check"/></svg> Trách nhiệm của TA:</p>
             <p>Đây <strong>CHỈ</strong> là công cụ <strong>HỖ TRỢ</strong>. AI có thể:</p>
             <ul class="space-y-1 list-none pl-1">
               <li>• Hiểu sai ý của bạn và viết lệch sự thật về bé</li>
@@ -252,10 +295,10 @@
             </ul>
             <p class="font-semibold mt-1">Bạn BẮT BUỘC phải:</p>
             <ul class="space-y-1 list-none pl-1">
-              <li>✓ Đọc kỹ toàn bộ output trước khi gửi PH</li>
-              <li>✓ So sánh với thông tin gốc về bé</li>
-              <li>✓ Sửa lại nếu thấy chi tiết nào sai/không phù hợp</li>
-              <li>✓ Chịu trách nhiệm cuối cùng về nội dung gửi đi</li>
+              <li><svg class="ico text-emerald-600"><use href="#i-check"/></svg> Đọc kỹ toàn bộ output trước khi gửi PH</li>
+              <li><svg class="ico text-emerald-600"><use href="#i-check"/></svg> So sánh với thông tin gốc về bé</li>
+              <li><svg class="ico text-emerald-600"><use href="#i-check"/></svg> Sửa lại nếu thấy chi tiết nào sai/không phù hợp</li>
+              <li><svg class="ico text-emerald-600"><use href="#i-check"/></svg> Chịu trách nhiệm cuối cùng về nội dung gửi đi</li>
             </ul>
           </div>
 
@@ -281,9 +324,9 @@
       <div id="settingsPanel" class="hidden fixed inset-0 z-40 bg-black/50 flex items-start justify-end p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mt-14 p-5 space-y-4">
           <div class="flex items-center justify-between">
-            <h2 class="font-bold text-slate-800 text-sm">⚙️ Cài đặt</h2>
+            <h2 class="font-bold text-slate-800 text-sm"><svg class="ico"><use href="#i-settings"/></svg> Cài đặt</h2>
             <button onclick="toggleSettings()"
-              class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+              class="text-slate-400 hover:text-slate-600 text-lg leading-none"><svg class="ico"><use href="#i-x"/></svg></button>
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Gemini API Key</label>
@@ -299,12 +342,12 @@
             <label class="block text-sm font-medium text-slate-700">Model AI</label>
             <select id="modelSelect"
               class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="gemini-2.5-flash">⚡ Flash — Ổn định, 250 req/ngày (khuyến nghị)</option>
-              <option value="gemini-2.5-flash-lite">🚀 Flash Lite — Cực nhanh, 1000 req/ngày</option>
-              <option value="gemini-2.5-pro">🎯 Pro — Chất lượng cao nhất (hay bị 429)</option>
+              <option value="gemini-2.5-flash">Flash — Ổn định, 250 req/ngày (khuyến nghị)</option>
+              <option value="gemini-2.5-flash-lite">Flash Lite — Cực nhanh, 1000 req/ngày</option>
+              <option value="gemini-2.5-pro">Pro — Chất lượng cao nhất (hay bị 429)</option>
             </select>
             <p class="text-xs text-slate-500">
-              💡 <strong>Flash</strong> là lựa chọn cân bằng nhất. <strong>Pro</strong> chất lượng cao hơn nhưng giới
+              <svg class="ico"><use href="#i-bulb"/></svg> <strong>Flash</strong> là lựa chọn cân bằng nhất. <strong>Pro</strong> chất lượng cao hơn nhưng giới
               hạn chặt (5 RPM, 100 RPD) và hay bị từ chối do Google ưu tiên paid users.
             </p>
           </div>
@@ -326,8 +369,8 @@
             </p>
           </div>
           <button onclick="toggleSettings()" title="Cài đặt"
-            class="ml-4 shrink-0 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg w-9 h-9 flex items-center justify-center text-base transition-colors">
-            ⚙️
+            class="ml-4 shrink-0 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg w-9 h-9 flex items-center justify-center text-lg transition-colors">
+            <svg class="ico"><use href="#i-settings"/></svg>
           </button>
         </div>
       </header>
@@ -336,12 +379,12 @@
       <div id="welcomeModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
           <div class="flex items-center gap-3">
-            <div class="text-3xl">👋</div>
+            <div class="text-3xl text-indigo-500"><svg class="ico"><use href="#i-hand"/></svg></div>
             <h2 class="text-xl font-bold text-slate-800">Chào bạn, đọc kỹ trước khi dùng nhé!</h2>
           </div>
 
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
-            <p class="font-semibold text-amber-900 text-sm">⚠️ Đây là công cụ HỖ TRỢ — không thể thay thế cho TA</p>
+            <p class="font-semibold text-amber-900 text-sm"><svg class="ico"><use href="#i-alert"/></svg> Đây là công cụ HỖ TRỢ — không thể thay thế cho TA</p>
             <p class="text-sm text-slate-700 leading-relaxed">
               Phần mềm này giúp bạn soạn nhanh khung báo cáo, nhưng <strong>không nên gửi nguyên văn</strong> cho phụ
               huynh.
@@ -349,33 +392,34 @@
           </div>
 
           <div class="space-y-3 text-sm text-slate-700">
-            <p class="font-semibold text-slate-800">✅ Trách nhiệm của TA:</p>
+            <p class="font-semibold text-slate-800"><svg class="ico text-emerald-600"><use href="#i-circle-check"/></svg> Trách nhiệm của TA:</p>
             <ul class="space-y-2 pl-1">
-              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Đọc kỹ</strong> toàn
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-check"/></svg></span><span><strong>Đọc kỹ</strong> toàn
                   bộ báo cáo trước khi gửi PH.</span></li>
-              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Cá nhân hóa</strong>
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-check"/></svg></span><span><strong>Cá nhân hóa</strong>
                   bằng cách thêm các quan sát thực tế về bé, tránh sử dụng toàn bộ văn bản rập khuôn.</span></li>
-              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Sửa lại</strong>
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-check"/></svg></span><span><strong>Sửa lại</strong>
                   những chỗ không đúng với tình hình thực tế của bé.</span></li>
-              <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span><span><strong>Chịu trách
+              <li class="flex gap-2"><span class="text-emerald-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-check"/></svg></span><span><strong>Chịu trách
                     nhiệm</strong> cuối cùng về nội dung gửi PH.</span></li>
             </ul>
           </div>
 
           <div class="space-y-3 text-sm text-slate-700">
-            <p class="font-semibold text-slate-800">❌ Tránh:</p>
+            <p class="font-semibold text-slate-800"><svg class="ico text-rose-600"><use href="#i-circle-x"/></svg> Tránh:</p>
             <ul class="space-y-2 pl-1">
-              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Copy-paste nguyên văn mà không
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-x"/></svg></span><span>Copy-paste nguyên văn mà không
                   đọc lại.</span></li>
-              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Nhập SĐT, địa chỉ, hay thông tin
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-x"/></svg></span><span>Nhập SĐT, địa chỉ, hay thông tin
                   nhạy cảm vào ô ghi chú.</span></li>
-              <li class="flex gap-2"><span class="text-rose-600 shrink-0">✗</span><span>Báo cáo sơ sài khiến PH hiểu
+              <li class="flex gap-2"><span class="text-rose-600 shrink-0 mt-0.5"><svg class="ico"><use href="#i-x"/></svg></span><span>Báo cáo sơ sài khiến PH hiểu
                   nhầm tình hình của bé.</span></li>
             </ul>
           </div>
 
           <p class="text-xs text-slate-500 italic border-t pt-3">
-            Mục tiêu là tiết kiệm thời gian gõ máy để bạn có thể tập trung vào quan sát và chăm sóc bé tốt hơn ạ. 💙
+            Mục tiêu là tiết kiệm thời gian gõ máy để bạn có thể tập trung vào quan sát và chăm sóc bé tốt hơn ạ.
+            <svg class="ico text-indigo-500"><use href="#i-heart"/></svg>
           </p>
 
           <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
@@ -393,13 +437,13 @@
       <!-- ══════════════════════════════════════════════════════ MODE 3: CALENDAR MODAL -->
       <div id="calendarModal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 space-y-4">
-          <h2 class="font-bold text-slate-800 text-base">📅 Chọn các ngày có bài tập</h2>
+          <h2 class="font-bold text-slate-800 text-base"><svg class="ico"><use href="#i-calendar"/></svg> Chọn các ngày có bài tập</h2>
           <div class="flex items-center justify-between">
             <button type="button" onclick="calNavMonth(-1)"
-              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors">◀</button>
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors"><svg class="ico"><use href="#i-chevron-left"/></svg></button>
             <span id="calMonthLabel" class="font-semibold text-slate-700 text-sm"></span>
             <button type="button" onclick="calNavMonth(1)"
-              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors">▶</button>
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 font-bold text-sm transition-colors"><svg class="ico"><use href="#i-chevron-right"/></svg></button>
           </div>
           <div id="calGrid" class="grid grid-cols-7 gap-1 text-center"></div>
           <p id="calCounter" class="text-xs text-slate-500 text-center"></p>
@@ -410,7 +454,7 @@
             </button>
             <button type="button" id="calApplyBtn" onclick="applyCalendarDates()"
               class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
-              ✅ Áp dụng
+              Áp dụng
             </button>
           </div>
         </div>
@@ -422,15 +466,15 @@
         <section class="bg-indigo-50 rounded-2xl border border-indigo-100 p-5 space-y-3">
           <button onclick="toggleAiGuide()" class="w-full flex items-center justify-between text-left">
             <div class="flex items-center gap-2">
-              <span class="text-xl">✨</span>
+              <span class="text-xl text-indigo-500"><svg class="ico"><use href="#i-sparkles"/></svg></span>
               <h2 class="font-semibold text-slate-800 text-sm">Hướng dẫn dùng tính năng AI (tùy chọn)</h2>
             </div>
-            <span id="aiGuideChevron" class="text-slate-400 transition-transform">▼</span>
+            <span id="aiGuideChevron" class="text-slate-400 transition-transform"><svg class="ico"><use href="#i-chevron-down"/></svg></span>
           </button>
 
           <div id="aiGuideContent" class="hidden space-y-4 pt-2">
             <p class="text-sm text-slate-600 leading-relaxed">
-              Sau khi tạo báo cáo, bạn có thể bấm <strong>"✨ Viết lại bằng AI"</strong> để báo cáo tự nhiên và đa dạng
+              Sau khi tạo báo cáo, bạn có thể bấm <strong>"Viết lại bằng AI"</strong> để báo cáo tự nhiên và đa dạng
               hơn. Tính năng này dùng Google Gemini miễn phí.
             </p>
 
@@ -446,7 +490,7 @@
                     class="text-indigo-600 underline font-medium">aistudio.google.com/app/apikey</a></li>
                 <li>• Đăng nhập bằng tài khoản Google</li>
                 <li>• Bấm <strong>"Create API key"</strong> → chọn project (hoặc tạo mới) → copy key</li>
-                <li>• Mở <strong>⚙️ Cài đặt</strong> ở góc trên phải → dán key vào → bấm Lưu</li>
+                <li>• Mở <strong><svg class="ico"><use href="#i-settings"/></svg> Cài đặt</strong> ở góc trên phải → dán key vào → bấm Lưu</li>
               </ol>
               <p class="text-xs text-slate-500 italic">Hoàn toàn miễn phí, không cần thẻ tín dụng.</p>
             </div>
@@ -459,7 +503,7 @@
               </h3>
               <div class="space-y-2 text-sm">
                 <div class="flex gap-3 items-start">
-                  <span class="shrink-0 mt-0.5">⚡</span>
+                  <span class="shrink-0 mt-0.5 text-slate-500"><svg class="ico"><use href="#i-zap"/></svg></span>
                   <div>
                     <p class="font-semibold text-slate-800">Flash <span class="text-xs font-normal text-indigo-500">—
                         Khuyến nghị</span></p>
@@ -469,7 +513,7 @@
                   </div>
                 </div>
                 <div class="flex gap-3 items-start">
-                  <span class="shrink-0 mt-0.5">🚀</span>
+                  <span class="shrink-0 mt-0.5 text-slate-500"><svg class="ico"><use href="#i-rocket"/></svg></span>
                   <div>
                     <p class="font-semibold text-slate-800">Flash Lite</p>
                     <p class="text-slate-600 text-xs">Cực nhanh, 1000 lượt/ngày, nhưng chất lượng văn phong thấp hơn
@@ -477,7 +521,7 @@
                   </div>
                 </div>
                 <div class="flex gap-3 items-start">
-                  <span class="shrink-0 mt-0.5">🎯</span>
+                  <span class="shrink-0 mt-0.5 text-slate-500"><svg class="ico"><use href="#i-target"/></svg></span>
                   <div>
                     <p class="font-semibold text-slate-800">Pro <span class="text-xs font-normal text-amber-600">— Hay
                         bị từ chối</span></p>
@@ -490,7 +534,7 @@
             </div>
 
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
-              🔒 <strong>Lưu ý quyền riêng tư:</strong> Khi dùng AI, nội dung được gửi tới Google. Tên thật của bé được
+              <svg class="ico"><use href="#i-lock"/></svg> <strong>Lưu ý quyền riêng tư:</strong> Khi dùng AI, nội dung được gửi tới Google. Tên thật của bé được
               tự động ẩn (chỉ gửi nickname). Đừng nhập SĐT, địa chỉ, hay thông tin nhạy cảm vào các ô ghi chú.
             </div>
           </div>
@@ -509,7 +553,7 @@
               <label class="block text-sm text-slate-600 mb-1">Tên thay thế (nickname)</label>
               <input id="nickName" type="text" placeholder="VD: Adam, Andy..."
                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-              <p class="text-xs text-slate-400 mt-1">💡 Đặt nickname khác biệt rõ với tên thật (vd: "Adam, Andy..." thay
+              <p class="text-xs text-slate-400 mt-1"><svg class="ico"><use href="#i-bulb"/></svg> Đặt nickname khác biệt rõ với tên thật (vd: "Adam, Andy..." thay
                 vì "A").
                 Đây là tên được gửi sang AI để bảo vệ thông tin của bé.</p>
             </div>
@@ -538,7 +582,7 @@
                   class="text-slate-400">(tuỳ chọn)</span></label>
               <textarea id="extraNotes1" rows="2" placeholder="VD: bé tích cực, hay xung phong..."
                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
-              <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+              <p class="text-xs text-slate-400 mt-1"><svg class="ico"><use href="#i-bulb"/></svg> Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
             </div>
           </div>
         </section>
@@ -565,7 +609,7 @@
                   class="text-slate-400">(tuỳ chọn)</span></label>
               <textarea id="extraNotes2" rows="2" placeholder="VD: bé tiến bộ rõ rệt so với tháng trước..."
                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
-              <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+              <p class="text-xs text-slate-400 mt-1"><svg class="ico"><use href="#i-bulb"/></svg> Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
             </div>
           </div>
         </section>
@@ -577,7 +621,7 @@
           <div id="scoreRows" class="space-y-2"></div>
 
           <p class="text-xs text-slate-500 italic">
-            💡 Nếu nhập ngày mà không nhập điểm → bảng sẽ hiển thị <strong>"Chưa hoàn thành"</strong> cho bài đó.
+            <svg class="ico"><use href="#i-bulb"/></svg> Nếu nhập ngày mà không nhập điểm → bảng sẽ hiển thị <strong>"Chưa hoàn thành"</strong> cho bài đó.
           </p>
 
           <div class="flex flex-wrap gap-4">
@@ -587,7 +631,7 @@
             </button>
             <button type="button" onclick="openCalendarPicker()"
               class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors">
-              📅 Chọn ngày từ lịch
+              <svg class="ico"><use href="#i-calendar"/></svg> Chọn ngày từ lịch
             </button>
           </div>
 
@@ -596,13 +640,13 @@
                 chọn)</span></label>
             <textarea id="customNote3" rows="2" placeholder="VD: Bé thường nộp bài đúng hạn, có vài bài muộn 1 ngày..."
               class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
-            <p class="text-xs text-slate-400 mt-1">💡 Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
+            <p class="text-xs text-slate-400 mt-1"><svg class="ico"><use href="#i-bulb"/></svg> Không nhập SĐT, địa chỉ, hay thông tin nhạy cảm khác.</p>
           </div>
 
           <div class="pt-2">
             <button onclick="generate3()"
               class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
-              ✨ Tạo báo cáo
+              <svg class="ico"><use href="#i-sparkles"/></svg> Tạo báo cáo
             </button>
           </div>
         </section>
@@ -616,12 +660,12 @@
                 class="text-slate-400 font-normal">(có thể chỉnh sửa trước khi xuất ảnh)</span></label>
             <textarea id="nhanXetEditor" rows="6"
               class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono"></textarea>
-            <p class="text-xs text-slate-500">💡 Mỗi dòng bắt đầu bằng <code class="bg-slate-100 px-1 rounded">•</code>.
+            <p class="text-xs text-slate-500"><svg class="ico"><use href="#i-bulb"/></svg> Mỗi dòng bắt đầu bằng <code class="bg-slate-100 px-1 rounded">•</code>.
               Bọc chữ trong <code class="bg-slate-100 px-1 rounded">**chữ**</code> để in đậm trong bảng. Bạn có thể sửa
               câu chữ hoặc thêm/bớt dòng tùy ý.</p>
             <button onclick="updateReportCard()"
               class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
-              ✅ Cập nhật bảng
+              <svg class="ico"><use href="#i-check"/></svg> Cập nhật bảng
             </button>
           </div>
 
@@ -649,7 +693,7 @@
           <!-- Download button -->
           <button onclick="downloadReportPNG()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
-            🖼 Tải ảnh PNG
+            <svg class="ico"><use href="#i-image"/></svg> Tải ảnh PNG
           </button>
         </section>
 
@@ -657,12 +701,29 @@
         <!-- MODE 4: ILA SCORE REPORT -->
         <div id="mode4Container" class="hidden space-y-4">
 
+          <!-- BANNER KHÔI PHỤC PHIÊN LÀM VIỆC (tự lưu vào localStorage) -->
+          <div id="m4RestoreBanner"
+            class="hidden bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex-1 text-sm text-indigo-900">
+              <p class="font-semibold"><svg class="ico"><use href="#i-save"/></svg> Bạn có phiên làm việc chưa hoàn tất</p>
+              <p id="m4RestoreInfo" class="text-xs text-indigo-700 mt-0.5"></p>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+              <button onclick="m4RestoreSession()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">Khôi
+                phục</button>
+              <button onclick="m4DiscardSession()"
+                class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">Xóa
+                bản lưu</button>
+            </div>
+          </div>
+
           <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-            <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#128229; Import dữ liệu điểm
+            <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4"><svg class="ico"><use href="#i-inbox"/></svg> Import dữ liệu điểm
             </h2>
 
             <details class="m4-guide mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4" open>
-              <summary class="cursor-pointer font-semibold text-slate-700 text-sm select-none">&#128221; Hướng
+              <summary class="cursor-pointer font-semibold text-slate-700 text-sm select-none"><svg class="ico"><use href="#i-book-open"/></svg> Hướng
                 dẫn lấy dữ liệu điểm sử dụng lệnh Console (Chỉ áp dụng cho TA của ILA)</summary>
               <div class="mt-3 space-y-3 text-sm text-slate-600">
                 <ol class="list-decimal pl-5 space-y-1.5">
@@ -731,7 +792,7 @@
                     <line x1="6" y1="20" x2="6" y2="14" />
                   </svg>Phân tích dữ liệu</button>
                 <button onclick="m4ClearPaste()"
-                  class="border border-slate-200 text-slate-600 hover:border-red-400 hover:text-red-500 text-sm px-4 py-2 rounded-lg transition-colors">&#10005;
+                  class="border border-slate-200 text-slate-600 hover:border-red-400 hover:text-red-500 text-sm px-4 py-2 rounded-lg transition-colors"><svg class="ico"><use href="#i-x"/></svg>
                   Xóa</button>
                 <span id="m4CharCount" class="text-xs text-slate-400 ml-auto">0 ký tự</span>
               </div>
@@ -742,7 +803,7 @@
                 onclick="document.getElementById('m4FileInput').click()"
                 ondragover="event.preventDefault();this.classList.add('border-indigo-500')"
                 ondragleave="this.classList.remove('border-indigo-500')" ondrop="m4HandleDrop(event)">
-                <p class="text-slate-500 text-sm mb-2">&#128193; Kéo thả file .csv vào đây</p>
+                <p class="text-slate-500 text-sm mb-2"><svg class="ico"><use href="#i-folder"/></svg> Kéo thả file .csv vào đây</p>
                 <p class="text-slate-400 text-xs">hoặc click để chọn file</p>
               </div>
               <input id="m4FileInput" type="file" accept=".csv" class="hidden" onchange="m4HandleFileInput(event)" />
@@ -753,7 +814,7 @@
               <span class="text-xs text-slate-400">hoặc</span>
               <button onclick="m4AddStudentManual()"
                 class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                ➕ Thêm học sinh thủ công
+                <svg class="ico"><use href="#i-plus"/></svg> Thêm học sinh thủ công
               </button>
             </div>
           </section>
@@ -802,7 +863,7 @@
           <div id="m4WorkArea" class="hidden space-y-4">
 
             <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#9881;&#65039; Tùy chỉnh
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4"><svg class="ico"><use href="#i-sliders"/></svg> Tùy chỉnh
                 hiển thị phiếu điểm</h2>
               <div id="m4Panel" class="space-y-1"></div>
               <div class="mt-3 pt-3 border-t border-slate-100">
@@ -819,10 +880,10 @@
             </section>
 
             <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#9999;&#65039; Chỉnh sửa
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4"><svg class="ico"><use href="#i-pencil"/></svg> Chỉnh sửa
                 thông tin học sinh</h2>
               <div id="m4StampToggle" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                <p class="text-xs text-amber-800 font-semibold mb-2">&#9888;&#65039; Điểm 60–65: giáo viên quyết định
+                <p class="text-xs text-amber-800 font-semibold mb-2"><svg class="ico"><use href="#i-alert"/></svg> Điểm 60–65: giáo viên quyết định
                   kết quả</p>
                 <div class="flex gap-4">
                   <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="radio" name="m4StampChoice"
@@ -861,24 +922,24 @@
             </section>
 
             <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#11015;&#65039; Tải xuống
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4"><svg class="ico"><use href="#i-download"/></svg> Tải xuống
               </h2>
               <div class="flex flex-wrap gap-3">
                 <button onclick="m4DownloadPNG()"
-                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">&#128444;
+                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors"><svg class="ico"><use href="#i-image"/></svg>
                   Tải PNG (1 bé)</button>
                 <button onclick="m4DownloadPDF()"
-                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">&#128196;
+                  class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors"><svg class="ico"><use href="#i-file-text"/></svg>
                   Tải PDF (1 bé)</button>
                 <button onclick="m4DownloadZIP()"
-                  class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm shadow-sm transition-colors">&#128476;
+                  class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm shadow-sm transition-colors"><svg class="ico"><use href="#i-archive"/></svg>
                   Tải cả lớp (ZIP)</button>
               </div>
               <p id="m4ZipProgress" class="text-sm text-slate-600 mt-2 hidden"></p>
             </section>
 
             <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4">&#128065; Preview phiếu điểm
+              <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide mb-4"><svg class="ico"><use href="#i-eye"/></svg> Preview phiếu điểm
               </h2>
               <div class="border border-slate-200 rounded-xl overflow-auto">
                 <div id="m4ReportCard"></div>
@@ -902,7 +963,7 @@
             </div>
             <button onclick="generate()"
               class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition-colors">
-              ✨ Tạo báo cáo
+              <svg class="ico"><use href="#i-sparkles"/></svg> Tạo báo cáo
             </button>
           </div>
         </section>
@@ -910,7 +971,7 @@
         <!-- AI WARNING BANNER (shown after AI used) -->
         <div id="aiBanner"
           class="hidden bg-amber-50 border border-amber-300 rounded-xl px-4 py-2.5 text-xs text-amber-800 font-medium">
-          ⚠ Output từ AI — vui lòng đọc kỹ và đối chiếu với thông tin thực tế về bé trước khi gửi PH.
+          <svg class="ico"><use href="#i-alert"/></svg> Output từ AI — vui lòng đọc kỹ và đối chiếu với thông tin thực tế về bé trước khi gửi PH.
         </div>
 
         <!-- OUTPUT PANEL -->
@@ -918,11 +979,11 @@
           <div class="flex border-b border-slate-100">
             <button id="tabA" onclick="switchTab('A')"
               class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-500">
-              💬 Tin nhắn gửi PH
+              <svg class="ico"><use href="#i-message"/></svg> Tin nhắn gửi PH
             </button>
             <button id="tabB" onclick="switchTab('B')"
               class="flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent">
-              📋 TA Log
+              <svg class="ico"><use href="#i-clipboard-list"/></svg> TA Log
             </button>
           </div>
           <div class="p-5 space-y-3">
@@ -938,21 +999,21 @@
                 <button onclick="triggerAI('standard')" id="aiBtnStandard"
                   class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-full transition-colors font-medium"
                   title="Đa dạng câu chữ, vẫn giọng lễ phép trang trọng">
-                  ✨ Viết lại bằng AI
+                  <svg class="ico"><use href="#i-sparkles"/></svg> Viết lại bằng AI
                 </button>
                 <button onclick="triggerAI('humanize')" id="aiBtnHumanize"
                   class="text-xs bg-[#718A9E] hover:bg-[#5E7585] text-white px-4 py-1.5 rounded-full transition-colors font-medium"
                   title="Cắt rườm rà, gần gũi như TA nói chuyện thực tế với PH">
-                  💬 Humanize
+                  <svg class="ico"><use href="#i-message"/></svg> Humanize
                 </button>
                 <button onclick="revertAI()" id="revertBtn"
                   class="hidden text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-1.5 rounded-full transition-colors font-medium">
-                  ↩ Quay lại bản gốc
+                  <svg class="ico"><use href="#i-undo"/></svg> Quay lại bản gốc
                 </button>
               </div>
               <p class="text-xs text-slate-500 mt-2">
-                <strong class="text-indigo-600">✨ Viết lại</strong>: tinh chỉnh lại giọng văn, lễ phép trang trọng.
-                <strong class="text-[#718A9E]">💬 Humanize</strong>: cắt từ thừa, văn ngắn gọn gần gũi.
+                <strong class="text-indigo-600"><svg class="ico"><use href="#i-sparkles"/></svg> Viết lại</strong>: tinh chỉnh lại giọng văn, lễ phép trang trọng.
+                <strong class="text-[#718A9E]"><svg class="ico"><use href="#i-message"/></svg> Humanize</strong>: cắt từ thừa, văn ngắn gọn gần gũi.
               </p>
               <p class="text-xs text-slate-400 mt-1">Tính năng AI gửi nội dung qua Google. Tên bé được ẩn tự động. TA
                 chịu trách nhiệm kiểm tra output.</p>
@@ -992,7 +1053,7 @@
             <button onclick="m4CloseAddModal()"
               class="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50">Hủy</button>
             <button onclick="m4ConfirmAddStudent()"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg">✅
+              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"><svg class="ico"><use href="#i-check"/></svg>
               Thêm</button>
           </div>
         </div>
@@ -1134,15 +1195,43 @@
     + (meta ? ' | Lớp: ' + meta.classCode + ' · GV: ' + meta.teacher + ' · TA: ' + meta.ta + ' · ' + meta.startDate + ' → ' + meta.endDate : ' (không có metadata lớp)'));
 })();</script>
 
+  <!-- ══════════════════════════════════════════════════════ FEEDBACK WIDGET (Góp ý) -->
+  <div id="fbWidget" class="fixed bottom-5 right-5 z-30">
+    <div id="fbPanel"
+      class="hidden absolute bottom-12 right-0 w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+      <div class="p-3">
+        <textarea id="fbText" rows="4" placeholder="Góp ý của bạn..."
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 border-t border-slate-100">
+        <div class="flex items-center gap-1">
+          <button type="button" class="fb-emoji" title="Rất thích" onclick="fbSelectMood(0)"><svg class="ico"><use href="#i-laugh"/></svg></button>
+          <button type="button" class="fb-emoji" title="Ổn" onclick="fbSelectMood(1)"><svg class="ico"><use href="#i-smile"/></svg></button>
+          <button type="button" class="fb-emoji" title="Chưa ổn" onclick="fbSelectMood(2)"><svg class="ico"><use href="#i-meh"/></svg></button>
+          <button type="button" class="fb-emoji" title="Không thích" onclick="fbSelectMood(3)"><svg class="ico"><use href="#i-frown"/></svg></button>
+        </div>
+        <button type="button" onclick="fbSend()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors">Gửi
+          góp ý</button>
+      </div>
+    </div>
+    <button id="fbBtn" type="button" onclick="fbTogglePanel()"
+      class="bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-indigo-300 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 ml-auto">
+      <svg class="ico"><use href="#i-message"/></svg> <span>Góp ý</span>
+    </button>
+  </div>
+
   <script src="js/config.js"></script>
   <script src="js/images.js"></script>
   <script src="js/dotfield.js"></script>
+  <script src="js/animations.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/mode4.js"></script>
   <script src="js/mode3.js"></script>
   <script src="js/mode1.js"></script>
   <script src="js/mode2.js"></script>
   <script src="js/ai.js"></script>
+  <script src="js/feedback.js"></script>
   <script src="js/main.js"></script>
 </body>
 

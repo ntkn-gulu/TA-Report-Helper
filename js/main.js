@@ -15,6 +15,9 @@ function setMode(m) {
   document.getElementById("outputPanel").classList.add("hidden");
   document.getElementById("aiBanner").classList.add("hidden");
 
+  // Vào Mode 4: nếu có phiên làm việc đã lưu mà chưa import gì → mời khôi phục
+  if (m === 4 && typeof m4MaybeShowRestoreBanner === "function") m4MaybeShowRestoreBanner();
+
   const b1 = document.getElementById("btnMode1");
   const b2 = document.getElementById("btnMode2");
   const b3 = document.getElementById("btnMode3");
@@ -159,13 +162,13 @@ function closeWelcomeModal() {
   if (dontShow) {
     localStorage.setItem("welcome_dismissed", "1");
   }
-  document.getElementById("welcomeModal").classList.add("hidden");
+  animCloseModal(document.getElementById("welcomeModal"));
 }
 
 // Show welcome modal the first time the user enters the app (not on the landing page)
 function maybeShowWelcome() {
   if (!localStorage.getItem("welcome_dismissed")) {
-    document.getElementById("welcomeModal").classList.remove("hidden");
+    animOpenModal(document.getElementById("welcomeModal"));
   }
 }
 

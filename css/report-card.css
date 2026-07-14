@@ -214,3 +214,11 @@ body { font-family: 'Inter', -apple-system, sans-serif; }
 #sidebar.collapsed .sb-item { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
 #sidebar.collapsed .sb-item.active::before { left: 0; }
 #sidebar.collapsed .sb-user { justify-content: center; padding: 2px 0; }
+
+/* ── Feedback widget (💬 Góp ý) ── */
+#fbWidget .fb-emoji { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 9999px; color: #94a3b8; transition: color .15s, background .15s, box-shadow .15s; }
+#fbWidget .fb-emoji:hover { color: #4f46e5; background: #eef2ff; }
+#fbWidget .fb-emoji-on { color: #4f46e5; background: #e0e7ff; box-shadow: inset 0 0 0 1.5px #6366f1; }
+
+/* ── Bộ icon Lucide dùng chung (sprite #i-* trong index.html) ── */
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }

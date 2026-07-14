@@ -231,6 +231,13 @@ const M4_FIELDS = {
   total: { label: "Course Total", vi: "Tổng điểm", score: 0, denom: 100 },
 };
 
+// ─── FEEDBACK ───────────────────────────────────────────────────────────────
+// Nơi nhận góp ý từ widget "💬 Góp ý" (js/feedback.js).
+// - FEEDBACK_ENDPOINT: URL Web App của Google Apps Script (ghi vào Google Sheet).
+// - Để FEEDBACK_ENDPOINT = "" → khi gửi sẽ mở Gmail soạn sẵn tới FEEDBACK_EMAIL.
+const FEEDBACK_ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ_nlQKwSZqewU92Yu3QASAd1WV6p4b0J19f3EKirMAz0S8TRSFuqZFiTUpBW7g5Lv/exec";
+const FEEDBACK_EMAIL = "nnkhanhngan0812@gmail.com";
+
 // ─── MODE 4: CÂU NHẬN XÉT TỰ ĐỘNG THEO KỸ NĂNG ──────────────────────────────
 // Bộ câu RIÊNG của Mode 4 (không dùng chung SKILL_TIER_PHRASES của Mode 1).
 // Mức: EXCELLENT ≥85 · GOOD ≥70 · AVERAGE ≥50 · WEAK <50 (xem m4SkillTier).

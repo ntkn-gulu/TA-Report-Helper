@@ -80,7 +80,7 @@ function addScoreRow(dateVal, scoreVal) {
         value="${scoreVal !== undefined && scoreVal !== null ? scoreVal : ""}" />
       <span class="text-slate-400 text-xs">/10</span>
       <button type="button" onclick="removeScoreRow(${id})"
-        class="text-slate-300 hover:text-red-400 font-bold text-lg leading-none transition-colors" title="Xóa dòng">×</button>
+        class="text-slate-300 hover:text-red-400 font-bold text-lg leading-none transition-colors" title="Xóa dòng"><svg class="ico"><use href="#i-x"/></svg></button>
     </div>
     <p class="error-msg hidden text-xs text-red-500 pl-1"></p>`;
   container.appendChild(row);
@@ -376,7 +376,7 @@ function updateCalUI() {
   const count = calSelectedDates.size;
   document.getElementById("calCounter").textContent = `Đã chọn: ${count}/20 ngày`;
   const applyBtn = document.getElementById("calApplyBtn");
-  applyBtn.textContent = `✅ Áp dụng ${count} ngày`;
+  applyBtn.textContent = `Áp dụng ${count} ngày`;
   applyBtn.disabled = count === 0;
   applyBtn.className =
     count === 0

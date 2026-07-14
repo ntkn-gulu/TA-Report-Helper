@@ -8,6 +8,134 @@ let m4Students = [];
 let m4SelIdx = -1;
 const m4Edits = {};
 
+// ─── TỰ ĐỘNG LƯU PHIÊN LÀM VIỆC (localStorage) ───────────────────────────────
+// Mọi thay đổi ở Mode 4 đều đi qua m4RenderCard → m4ScheduleSave (debounce)
+// ghi toàn bộ trạng thái vào localStorage của trình duyệt. Đóng app / tắt máy
+// mở lại vẫn còn; banner "Khôi phục" hiện khi vào Mode 4 mà có bản lưu.
+const M4_SESSION_KEY = "ta_m4_session_v1";
+let m4SaveTimer = null;
+let m4Restoring = false;
+
+function m4ScheduleSave() {
+  if (m4Restoring) return;
+  clearTimeout(m4SaveTimer);
+  m4SaveTimer = setTimeout(m4SaveSession, 600);
+}
+
+function m4SaveSession() {
+  if (!m4Students.length) return;
+  try {
+    const denoms = {};
+    Object.keys(M4_FIELDS).forEach((k) => (denoms[k] = M4_FIELDS[k].denom));
+    const gv = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    };
+    localStorage.setItem(
+      M4_SESSION_KEY,
+      JSON.stringify({
+        v: 1,
+        savedAt: Date.now(),
+        students: m4Students,
+        edits: m4Edits,
+        selIdx: m4SelIdx,
+        split: m4IsSplitVGRW,
+        checked: Array.from(m4Checked),
+        denoms,
+        info: {
+          cls: gv("m4Class"),
+          start: gv("m4StartDate"),
+          end: gv("m4EndDate"),
+          teacher: gv("m4Teacher"),
+          ta: gv("m4TA"),
+          code: gv("m4ClassCode"),
+        },
+      })
+    );
+  } catch (e) {
+    // localStorage bị chặn hoặc đầy — không chặn thao tác của người dùng
+  }
+}
+
+function m4ReadSession() {
+  try {
+    const raw = localStorage.getItem(M4_SESSION_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.students) || !d.students.length) return null;
+    return d;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Gọi khi vào Mode 4: có bản lưu + chưa import gì → hiện banner khôi phục.
+function m4MaybeShowRestoreBanner() {
+  const banner = document.getElementById("m4RestoreBanner");
+  if (!banner) return;
+  const d = m4ReadSession();
+  const show = !!d && !m4Students.length;
+  banner.classList.toggle("hidden", !show);
+  if (show) {
+    const when = new Date(d.savedAt).toLocaleString("vi-VN");
+    const cls = d.info && d.info.cls ? " · lớp " + d.info.cls : "";
+    document.getElementById("m4RestoreInfo").textContent =
+      d.students.length + " học sinh" + cls + " · lưu lúc " + when;
+  }
+}
+
+function m4DiscardSession() {
+  try {
+    localStorage.removeItem(M4_SESSION_KEY);
+  } catch (e) {}
+  const banner = document.getElementById("m4RestoreBanner");
+  if (banner) banner.classList.add("hidden");
+  showToast("Đã xóa bản lưu phiên làm việc.", "info");
+}
+
+function m4RestoreSession() {
+  const d = m4ReadSession();
+  if (!d) {
+    m4MaybeShowRestoreBanner();
+    return;
+  }
+  m4Restoring = true;
+  try {
+    m4Students = d.students;
+    Object.keys(m4Edits).forEach((k) => delete m4Edits[k]);
+    Object.keys(d.edits || {}).forEach((k) => (m4Edits[k] = d.edits[k]));
+    m4IsSplitVGRW = !!d.split;
+    const cb = document.getElementById("m4SplitVGRW");
+    if (cb) cb.checked = m4IsSplitVGRW;
+    m4Checked.clear();
+    (d.checked || []).forEach((k) => m4Checked.add(k));
+    Object.keys(d.denoms || {}).forEach((k) => {
+      if (M4_FIELDS[k]) M4_FIELDS[k].denom = d.denoms[k];
+    });
+    const sv = (id, v) => {
+      const el = document.getElementById(id);
+      if (el && v != null) el.value = v;
+    };
+    if (d.info) {
+      sv("m4Class", d.info.cls);
+      sv("m4StartDate", d.info.start);
+      sv("m4EndDate", d.info.end);
+      sv("m4Teacher", d.info.teacher);
+      sv("m4TA", d.info.ta);
+      sv("m4ClassCode", d.info.code);
+    }
+    document.getElementById("m4StudentsSection").classList.remove("hidden");
+    document.getElementById("m4WorkArea").classList.remove("hidden");
+    m4RenderStudentCards();
+    m4SelectStudent(Math.min(Math.max(d.selIdx || 0, 0), m4Students.length - 1));
+    const banner = document.getElementById("m4RestoreBanner");
+    if (banner) banner.classList.add("hidden");
+    showToast("Đã khôi phục phiên làm việc (" + m4Students.length + " học sinh) ạ.", "ok");
+  } finally {
+    m4Restoring = false;
+  }
+}
+
 function m4GetLogo() {
   const c = document.getElementById("m4ClassCode").value;
   return c === "S" ? LOGO_S : c === "I" ? LOGO_I : LOGO_J;
@@ -117,7 +245,23 @@ function m4ParseStudents(text) {
     const fullName = r[0] || "";
     const engName = nameCols >= 2 ? r[1] || "" : "";
     const [p1, p2, vgrw, speaking, listening, homework, total] = r.slice(nameCols).map(num);
-    out.push({ fullName, engName, p1, p2, vgrw, speaking, listening, homework, total, passFailOverride: null });
+    out.push({
+      fullName,
+      engName,
+      p1,
+      p2,
+      vgrw,
+      speaking,
+      listening,
+      homework,
+      total,
+      // Điểm tách V/G/R/W nhập tay — null = chưa nhập (ô hiện placeholder)
+      vocab: null,
+      grammar: null,
+      reading: null,
+      writing: null,
+      passFailOverride: null,
+    });
   }
   return out;
 }
@@ -180,6 +324,8 @@ function m4LoadData(text) {
   const meta = m4ParseMeta(text);
   m4ApplyMeta(meta);
   m4RenderStudentCards();
+  const banner = document.getElementById("m4RestoreBanner");
+  if (banner) banner.classList.add("hidden");
   document.getElementById("m4StudentsSection").classList.remove("hidden");
   document.getElementById("m4WorkArea").classList.remove("hidden");
   m4SelectStudent(0);
@@ -222,29 +368,33 @@ function m4SkillComment(o) {
       "Con nắm được phần lớn kiến thức của khóa học và có tham gia xây dựng bài. Con cần duy trì việc làm bài tập về nhà đều đặn hơn.";
   else process = "Con cần tập trung hơn trong giờ học và chủ động hoàn thành bài tập về nhà đầy đủ hơn.";
 
+  // Tên kỹ năng in đậm ở đầu mỗi câu để PH dễ nhận diện.
+  const L = (en, txt) => "**Kĩ năng " + en + ":** " + txt;
+
   // Nghe / Nói luôn theo điểm riêng.
-  const lis = P.listening[tierOf(o.listening, F.listening.denom)];
-  const spk = P.speaking[tierOf(o.speaking, F.speaking.denom)];
+  const lis = L("Listening", P.listening[tierOf(o.listening, F.listening.denom)]);
+  const spk = L("Speaking", P.speaking[tierOf(o.speaking, F.speaking.denom)]);
 
   // V/G/R/W: chỉ tách khi đã nhập đủ 4 điểm riêng; ngược lại lấy chung theo % VGRW.
   const hasIndiv = o.split && [o.vocab, o.grammar, o.reading, o.writing].every((v) => Number(v) > 0);
   let voc, gra, rea, wri;
   if (hasIndiv) {
-    voc = P.vocab[tierOf(o.vocab, F.vocab.denom)];
-    gra = P.grammar[tierOf(o.grammar, F.grammar.denom)];
-    rea = P.reading[tierOf(o.reading, F.reading.denom)];
-    wri = P.writing[tierOf(o.writing, F.writing.denom)];
+    voc = L("Vocabulary", P.vocab[tierOf(o.vocab, F.vocab.denom)]);
+    gra = L("Grammar", P.grammar[tierOf(o.grammar, F.grammar.denom)]);
+    rea = L("Reading", P.reading[tierOf(o.reading, F.reading.denom)]);
+    wri = L("Writing", P.writing[tierOf(o.writing, F.writing.denom)]);
   } else {
     const vt = tierOf(o.vgrw, F.vgrw.denom);
-    voc = P.vocab[vt];
-    gra = P.grammar[vt];
-    rea = P.reading[vt];
-    wri = P.writing[vt];
+    voc = L("Vocabulary", P.vocab[vt]);
+    gra = L("Grammar", P.grammar[vt]);
+    rea = L("Reading", P.reading[vt]);
+    wri = L("Writing", P.writing[vt]);
   }
 
-  // TÁCH: mỗi kỹ năng 1 dòng. GỘP: nối liền thành 1 đoạn.
+  // TÁCH: mỗi kỹ năng 1 dòng có gạch đầu dòng. GỘP: nối liền thành 1 đoạn.
+  const parts = [lis, spk, voc, gra, rea, wri];
+  const skills = hasIndiv ? parts.map((t) => "- " + t).join("\n") : parts.join(" ");
   const sep = hasIndiv ? "\n" : " ";
-  const skills = [lis, spk, voc, gra, rea, wri].join(sep);
 
   return "**Quá trình học:** " + process + "\n**Nhận xét về bài kiểm tra cuối khoá:**" + sep + skills;
 }
@@ -333,6 +483,10 @@ function m4SelectStudent(idx) {
   M4_FIELDS.listening.score = s.listening;
   M4_FIELDS.homework.score = s.homework;
   M4_FIELDS.total.score = s.total;
+  M4_FIELDS.vocab.score = s.vocab ?? 0;
+  M4_FIELDS.grammar.score = s.grammar ?? 0;
+  M4_FIELDS.reading.score = s.reading ?? 0;
+  M4_FIELDS.writing.score = s.writing ?? 0;
   if (s.p1 !== null) m4Checked.add("project1");
   else m4Checked.delete("project1");
   if (s.p2 !== null) m4Checked.add("project2");
@@ -353,7 +507,7 @@ function m4RenderPanel() {
     .map((k) => {
       const f = M4_FIELDS[k],
         ch = m4Checked.has(k),
-        val = isSK(k) ? "" : f.score.toFixed(2),
+        val = isSK(k) ? (s[k] == null ? "" : String(s[k])) : f.score.toFixed(2),
         ph = isSK(k) ? "Enter..." : "";
       return (
         '<div class="flex items-center gap-2 py-2 border-b border-slate-100 last:border-0">' +
@@ -401,12 +555,34 @@ function m4ToggleField(k, on) {
   m4RenderPanel();
   m4RenderCard();
 }
+// Điểm nhập tay được ghi ngược vào học sinh đang chọn — nếu chỉ ghi vào
+// M4_FIELDS (dùng chung) thì chuyển thẻ học sinh khác là mất (bug cũ).
 function m4UpdScore(k, v) {
-  M4_FIELDS[k].score = parseFloat(v) || 0;
+  const n = parseFloat(String(v).replace(",", "."));
+  M4_FIELDS[k].score = isNaN(n) ? 0 : n;
+  if (m4SelIdx >= 0) {
+    const s = m4Students[m4SelIdx];
+    if (["vocab", "grammar", "reading", "writing"].includes(k)) {
+      s[k] = isNaN(n) ? null : n; // null = chưa nhập
+    } else if (k === "project1") {
+      s.p1 = isNaN(n) ? 0 : n;
+    } else if (k === "project2") {
+      s.p2 = isNaN(n) ? 0 : n;
+    } else {
+      s[k] = isNaN(n) ? 0 : n;
+      if (k === "total") {
+        // Điểm tổng đổi → tính lại điểm cao nhất lớp (quyết định mộc BEST)
+        const cmax = Math.max(...m4Students.map((x) => x.total));
+        m4Students.forEach((x) => (x.classMax = cmax));
+        m4RenderStudentCards();
+      }
+    }
+  }
   m4RenderCard();
 }
 function m4UpdDenom(k, v) {
-  M4_FIELDS[k].denom = parseFloat(v) || 100;
+  const n = parseFloat(String(v).replace(",", "."));
+  M4_FIELDS[k].denom = isNaN(n) ? 100 : n;
   m4RenderCard();
 }
 
@@ -429,6 +605,7 @@ function m4OnEditComment() {
 }
 
 function m4RenderCard() {
+  m4ScheduleSave();
   if (m4SelIdx < 0) return;
   const s = m4Students[m4SelIdx],
     e = m4Edits[m4SelIdx];
@@ -671,12 +848,12 @@ async function m4DownloadZIP() {
 function m4AddStudentManual() {
   document.getElementById("m4AddName").value = "";
   document.getElementById("m4AddEngName").value = "";
-  document.getElementById("m4AddModal").classList.remove("hidden");
+  animOpenModal(document.getElementById("m4AddModal"));
   setTimeout(() => document.getElementById("m4AddName").focus(), 50);
 }
 
 function m4CloseAddModal() {
-  document.getElementById("m4AddModal").classList.add("hidden");
+  animCloseModal(document.getElementById("m4AddModal"));
 }
 
 function m4ConfirmAddStudent() {
@@ -696,6 +873,10 @@ function m4ConfirmAddStudent() {
     listening: 0,
     homework: 0,
     total: 0,
+    vocab: null,
+    grammar: null,
+    reading: null,
+    writing: null,
     passFailOverride: null,
   };
   const newIdx = m4Students.length;

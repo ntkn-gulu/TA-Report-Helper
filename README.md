@@ -70,7 +70,8 @@ Produce official-looking per-student score cards for a whole class at once.
 - The same command also reads **class metadata** (class code, teacher, TA, start/end dates) and **auto-fills** the card.
 - Each card shows the correct **ILA level logo** and an **award stamp** (Best / Passed / Failed), with a manual pass/fail override for borderline cases.
 - Score breakdown: Project 1 & 2, VGRW (or split into Vocabulary / Grammar / Reading / Writing), Speaking, Listening, Homework, and Total — toggle which rows appear.
-- **Auto-generated per-skill comments** based on each skill's tier (merged into one paragraph, or split per skill when individual scores are provided), with a "regenerate from scores" button. Names and comments are fully editable per student.
+- **Auto-generated per-skill comments** based on each skill's tier, with each skill name **bolded** (e.g. `Kĩ năng Listening:`) so parents can scan the card quickly — merged into one paragraph, or one dash-bulleted line per skill when individual V/G/R/W scores are provided. A "regenerate from scores" button rebuilds the comment anytime. Names and comments are fully editable per student, and manually entered scores (including the split V/G/R/W ones) are stored **per student** — switching cards never loses them.
+- **Session autosave** — students, scores, comments, and class info are continuously saved to the browser's `localStorage`. Close the app mid-work and a **"Khôi phục phiên làm việc"** banner offers to restore everything the next time you open Mode 4 (same browser + same app location).
 - **Export options**: single **PNG**, single **PDF**, or a **ZIP of the entire class** (one PNG per student).
 
 ### 🤖 Optional AI rewriting (message modes)
@@ -95,6 +96,7 @@ For the two message modes, polish the rule-based draft with Google Gemini:
 - Collapsible sidebar to switch modes.
 - One-click copy for messages and the TA Log.
 - Persistent settings (callback time slot, AI model, dismissed welcome) saved in `localStorage`.
+- **💬 Feedback widget** — a floating button where users can rate the app and send suggestions straight to the maintainer.
 
 ---
 
